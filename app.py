@@ -29,14 +29,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 3. Base64 이미지 변환 헬퍼 (로컬 및 Streamlit Cloud 겸용)
-def get_image_base64(filename):
+def get_image_base64(filename, absolute_path=""):
     candidates = [
+        absolute_path,
         filename,
-        os.path.join(os.path.dirname(__file__), filename) if '__file__' in globals() else filename,
+        os.path.join(os.getcwd(), filename),
+        os.path.join(os.path.dirname(__file__), filename) if '__file__' in globals() else "",
         os.path.join(r"C:\Users\user\Desktop\axport_demo_gemini", filename)
     ]
     for p in candidates:
-        if p and os.path.exists(p):
+        if p and os.path.exists(p) and os.path.isfile(p):
             try:
                 with open(p, "rb") as f:
                     encoded = base64.b64encode(f.read()).decode()
@@ -47,10 +49,10 @@ def get_image_base64(filename):
                 pass
     return ""
 
-logo_b64 = get_image_base64("Axport_logo_png.png")
-chatbot_b64 = get_image_base64("Axport_AI.png")
+logo_b64 = get_image_base64("Axport_logo_png.png", r"C:\Users\user\Desktop\axport_demo_gemini\Axport_logo_png.png")
+chatbot_b64 = get_image_base64("Axport_AI.png", r"C:\Users\user\Desktop\axport_demo_gemini\Axport_AI.png")
 
-# 4. 전체 프론트엔드 웹 앱
+# 4. 전체 웹 애플리케이션 소스
 raw_html = f"""
 <!DOCTYPE html>
 <html lang="ko" class="dark scroll-smooth">
@@ -131,7 +133,7 @@ raw_html = f"""
         .chatbot-container {{ box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.45); }}
         .chat-bubble-ai {{ background: #F1F5F9; color: #0F172A; border-radius: 16px 16px 16px 4px; }}
         .dark .chat-bubble-ai {{ background: #1E293B; color: #F8FAFC; }}
-        .chat-bubble-user {{ background: #2563EB; color: #FFFFFF; border-radius: 16px 16px 4px 16px; }}
+        .chat-bubble-user {{ background: #0284C7; color: #FFFFFF; border-radius: 16px 16px 4px 16px; }}
 
         ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
         ::-webkit-scrollbar-thumb {{ background: #64748b; border-radius: 4px; }}
@@ -190,9 +192,9 @@ raw_html = f"""
         </div>
     </header>
 
-    <!-- ================= VIEW 1: Home (Sketchfab 스타일 홀로그램 3D 지구본) ================= -->
+    <!-- ================= VIEW 1: Home (HUD 디지털 홀로그램 3D 지구본) ================= -->
     <section id="view-landing" class="relative block w-full bg-white dark:bg-[#030712] transition-colors">
-        <!-- 3D 홀로그램 지구본 캔버스 -->
+        <!-- 3D HUD 홀로그램 지구본 캔버스 -->
         <div id="canvas-sticky-wrap" class="fixed inset-0 z-0 pointer-events-none w-full h-full">
             <div id="globe-container" class="w-full h-full"></div>
         </div>
@@ -201,11 +203,11 @@ raw_html = f"""
         <div class="relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-4 pt-16">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-300 text-xs font-semibold backdrop-blur-md mb-6 animate-pulse">
                 <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                <span id="txt-badge">Holographic Trade Compliance Intelligence</span>
+                <span id="txt-badge">HUD Futuristic Big Data Trade Intelligence</span>
             </div>
             <h1 class="text-4xl sm:text-7xl font-black tracking-tight text-slate-900 dark:text-white max-w-4xl leading-tight">
                 <span id="txt-title1">반도체 수출 적합성의</span> <br>
-                <span id="txt-title2" class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600 dark:from-cyan-300 dark:via-blue-400 dark:to-indigo-300">새로운 기준, Axport</span>
+                <span id="txt-title2" class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-400 to-indigo-600 dark:from-cyan-300 dark:via-blue-400 dark:to-indigo-300">새로운 기준, Axport</span>
             </h1>
             <p id="txt-subtitle" class="mt-6 text-slate-600 dark:text-slate-400 text-sm sm:text-lg max-w-xl leading-relaxed">
                 실제 글로벌 무역망과 연결된 반도체 수출 통제 AI 진단 플랫폼
@@ -273,10 +275,9 @@ raw_html = f"""
         </div>
     </section>
 
-    <!-- ================= VIEW 2: Main Dashboard (완전 복구됨) ================= -->
+    <!-- ================= VIEW 2: Main Dashboard ================= -->
     <section id="view-dashboard" class="hidden min-h-screen pt-20 px-4 sm:px-6 lg:px-8 pb-16 space-y-6 bg-slate-50 dark:bg-[#070D19] transition-colors">
         <div class="max-w-7xl mx-auto space-y-6">
-            <!-- 탭 바 -->
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2 sm:gap-4 overflow-x-auto">
                     <button onclick="switchDashTab('tab-summary')" id="btntab-summary" class="dash-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600">📊 종합 요약</button>
@@ -290,9 +291,8 @@ raw_html = f"""
                 </button>
             </div>
 
-            <!-- 탭 1: 종합 요약 -->
+            <!-- 종합 요약 -->
             <div id="content-tab-summary" class="space-y-6">
-                <!-- 4대 KPI 카드 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="kpi-gradient-blue p-5 rounded-2xl text-white shadow-sm">
                         <div class="text-xs font-semibold uppercase tracking-wider opacity-85">총 수출액 (SEMICON)</div>
@@ -316,7 +316,6 @@ raw_html = f"""
                     </div>
                 </div>
 
-                <!-- 차트 영역 -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
                         <div class="flex items-center justify-between mb-4">
@@ -337,7 +336,6 @@ raw_html = f"""
                     </div>
                 </div>
 
-                <!-- 분석 시사점 문장 (평가표 요건) -->
                 <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-blue-900 dark:text-blue-200 text-xs leading-relaxed flex items-start gap-3">
                     <i data-lucide="info" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
                     <div>
@@ -346,7 +344,7 @@ raw_html = f"""
                 </div>
             </div>
 
-            <!-- 탭 2: 데이터 업로드 & 적합성 판정 (CSV 파싱 복구됨) -->
+            <!-- 데이터 업로드 탭 -->
             <div id="content-tab-upload" class="hidden space-y-6">
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -398,7 +396,7 @@ raw_html = f"""
                 </div>
             </div>
 
-            <!-- 탭 3: 평가 기준표 (완전 복구됨) -->
+            <!-- 평가 기준표 탭 -->
             <div id="content-tab-criteria" class="hidden space-y-6">
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
                     <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -452,7 +450,7 @@ raw_html = f"""
                 </div>
             </div>
 
-            <!-- 탭 4: 리스크 모니터링 -->
+            <!-- 리스크 탭 -->
             <div id="content-tab-risks" class="hidden space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -480,39 +478,32 @@ raw_html = f"""
                                 <div class="flex justify-between font-semibold mb-1"><span>대만 (신주 FAB 경유)</span><span>1.4% (매우 양호)</span></div>
                                 <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full w-[14%]"></div></div>
                             </div>
-                            <div>
-                                <div class="flex justify-between font-semibold mb-1"><span>중국 (세관 총서)</span><span class="text-red-500 font-bold">12.4% (정밀 검사 주의)</span></div>
-                                <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-red-500 h-full w-[80%]"></div></div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 탭 5: 시황 및 매크로 -->
+            <!-- 시황 탭 -->
             <div id="content-tab-macro" class="hidden space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
                         <span class="text-xs text-slate-500">실시간 환율 (USD/KRW)</span>
                         <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">1,350.20 원</div>
-                        <span class="text-xs text-red-500 font-medium">▲ 3.20 (0.24%)</span>
                     </div>
                     <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
                         <span class="text-xs text-slate-500">DRAM DXI 현물 지수</span>
                         <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">28,450</div>
-                        <span class="text-xs text-emerald-500 font-medium">▲ 1.4% 전일비</span>
                     </div>
                     <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
                         <span class="text-xs text-slate-500">반도체 운임 지수 (SCFI)</span>
                         <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">1,940 pt</div>
-                        <span class="text-xs text-blue-500 font-medium">안정세 유지</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ================= VIEW 3: Custom View (4대 윈도우 완전 복구) ================= -->
+    <!-- ================= VIEW 3: Custom View ================= -->
     <section id="view-custom-mac" class="hidden relative w-full h-[92vh] pt-16 mac-desktop-bg overflow-hidden">
         <div class="absolute top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white/20 dark:bg-black/40 backdrop-blur-xl border border-white/30 px-4 py-2 rounded-2xl shadow-xl">
             <button onclick="toggleMacWindow('mac-win1')" id="btn-win1" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 shadow-md flex items-center gap-1.5">
@@ -529,7 +520,6 @@ raw_html = f"""
             </button>
         </div>
 
-        <!-- 윈도우 1: KPI 요약 -->
         <div id="mac-win1" class="mac-window w-80 mac-glass rounded-2xl shadow-2xl" style="top: 120px; left: 40px; z-index: 20;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
                 <span class="text-xs font-semibold">SEMICON KPI 요약</span>
@@ -544,7 +534,6 @@ raw_html = f"""
             </div>
         </div>
 
-        <!-- 윈도우 2: 진단 엔진 -->
         <div id="mac-win2" class="mac-window w-96 mac-glass rounded-2xl shadow-2xl" style="top: 120px; left: 380px; z-index: 21;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
                 <span class="text-xs font-semibold">수출 적합성 진단 엔진</span>
@@ -562,7 +551,6 @@ raw_html = f"""
             </div>
         </div>
 
-        <!-- 윈도우 3: 리스크 모니터 -->
         <div id="mac-win3" class="mac-window w-84 mac-glass rounded-2xl shadow-2xl" style="top: 320px; left: 100px; z-index: 22;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
                 <span class="text-xs font-semibold">통관 리스크 모니터</span>
@@ -575,7 +563,6 @@ raw_html = f"""
             </div>
         </div>
 
-        <!-- 윈도우 4: 시황 창 -->
         <div id="mac-win4" class="mac-window w-80 mac-glass rounded-2xl shadow-2xl" style="top: 300px; left: 520px; z-index: 23;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
                 <span class="text-xs font-semibold">FX & Spot Feed</span>
@@ -614,26 +601,51 @@ raw_html = f"""
 
     <!-- ================= 플로팅 AI 챗봇 ================= -->
     <div id="chatbot-trigger" onclick="toggleChatbot()" class="fixed bottom-6 right-6 z-50 cursor-pointer group">
-        <div class="relative w-14 h-14 rounded-full bg-cyan-600 flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform overflow-hidden border-2 border-white">
-            <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('chat-icon-fallback').style.display='block';" />
-            <div id="chat-icon-fallback" class="hidden"><i data-lucide="message-square" class="w-6 h-6"></i></div>
+        <div class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform overflow-hidden border-2 border-white dark:border-slate-800">
+            <img id="chat-fab-img" src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('chat-fab-fallback').style.display='flex';" />
+            <div id="chat-fab-fallback" class="hidden w-full h-full items-center justify-center bg-gradient-to-tr from-cyan-600 to-blue-600">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 8V4H8"></path>
+                    <rect width="16" height="12" x="4" y="8" rx="2"></rect>
+                    <path d="M2 14h2"></path>
+                    <path d="M20 14h2"></path>
+                    <path d="M15 13v2"></path>
+                    <path d="M9 13v2"></path>
+                </svg>
+            </div>
             <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white"></span>
         </div>
     </div>
 
     <div id="chatbot-window" class="hidden fixed bottom-24 right-6 z-50 w-96 max-w-[90vw] h-[520px] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 chatbot-container flex flex-col overflow-hidden">
         <div class="bg-gradient-to-r from-cyan-600 to-blue-800 p-4 text-white flex items-center justify-between">
-            <h4 class="font-bold text-sm text-white">Axport AI 어시스턴트</h4>
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-white/20 p-0.5 overflow-hidden border border-white/40 flex items-center justify-center">
+                    <img id="chat-header-img" src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none'; document.getElementById('chat-header-fallback').style.display='block';" />
+                    <div id="chat-header-fallback" class="hidden text-white"><i data-lucide="bot" class="w-5 h-5"></i></div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-white">Axport AI 어시스턴트</h4>
+                    <p class="text-[10px] text-cyan-200">반도체 수출통제 전담 AI</p>
+                </div>
+            </div>
             <button onclick="toggleChatbot()" class="text-white/80 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
+
         <div class="p-2.5 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex gap-1.5 overflow-x-auto text-[11px]">
             <button onclick="askPreset('ECCN 3A090 규제 기준이 뭐야?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 whitespace-nowrap">3A090 통제선</button>
             <button onclick="askPreset('RVC 부가가치기준 계산법 알려줘')" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 whitespace-nowrap">RVC 산출 공식</button>
             <button onclick="askPreset('HBM3e 대미 수출 시 주의점은?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 whitespace-nowrap">HBM 대미 수출</button>
         </div>
+
         <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs text-slate-800 dark:text-slate-100">
-            <div class="chat-bubble-ai p-3 max-w-[80%]">안녕하세요! 반도체 무역 규제 상담 AI입니다. 무엇이든 질문하세요.</div>
+            <div class="flex items-start gap-2">
+                <div class="chat-bubble-ai p-3 max-w-[85%] leading-relaxed">
+                    안녕하세요! <b>Axport 반도체 무역 규제 전담 AI</b>입니다.<br>ECCN 전략물자 통제, FTA 원산지 RVC 산출 등 궁금한 점을 질문하세요.
+                </div>
+            </div>
         </div>
+
         <div class="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
             <form id="chat-form" onsubmit="handleChatSubmit(event)" class="flex items-center gap-2">
                 <input type="text" id="chat-input" placeholder="질문 입력..." class="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-none" />
@@ -642,7 +654,7 @@ raw_html = f"""
         </div>
     </div>
 
-    <!-- JS 스크립트 -->
+    <!-- ================= JS: Storyblocks HUD 디지털 미래형 지구본 3D 엔진 ================= -->
     <script>
         lucide.createIcons();
 
@@ -665,10 +677,10 @@ raw_html = f"""
 
         // 2. 다국어
         const i18n = {{
-            ko: {{ badge: "Holographic Trade Compliance Intelligence", title1: "반도체 수출 적합성의", title2: "새로운 기준, Axport", subtitle: "실제 글로벌 무역망과 연결된 반도체 수출 통제 AI 진단 플랫폼", btnDash: "대시보드 시작하기", aboutH2: "복잡한 통제 규제를 <br>단 하나의 흐름으로", aboutP: "Axport는 기업의 원시 데이터를 실시간 스트리밍하여, 미 상무부 BIS 수출통제와 FTA 부가가치기준을 완전 자동으로 판정합니다." }},
-            en: {{ badge: "Holographic Trade Compliance Intelligence", title1: "A New Standard for", title2: "Semiconductor Export, Axport", subtitle: "AI-Powered Semiconductor Export Compliance Platform Connected to Global Trade Networks", btnDash: "Launch Dashboard", aboutH2: "Complex Trade Regulations <br>In a Single Seamless Flow", aboutP: "Axport automatically streams raw ERP data to audit US BIS ECCN controls and FTA Regional Value Content in real time." }},
-            ja: {{ badge: "Holographic Trade Compliance Intelligence", title1: "半導体輸出適合性の", title2: "新たな基準、Axport", subtitle: "グローバル貿易ネットワークと直結した半導体輸出管理AIプラットフォーム", btnDash: "ダッシュボードを開始", aboutH2: "複雑な規制対応を <br>ひとつのスムーズな流れに", aboutP: "Axportは企業の生データを直接解析し、米BIS ECCN規制およびFTA原産地付加価値基準を自動診断します。" }},
-            zh: {{ badge: "Holographic Trade Compliance Intelligence", title1: "半导体出口合规的", title2: "全新标准，Axport", subtitle: "深度连接全球贸易网络的半导体出口合规人工智能平台", btnDash: "进入数据看板", aboutH2: "化繁为简 <br>一体化智能合规流程", aboutP: "Axport实时解析企业ERP原始数据，全面自动核查美国BIS ECCN出口管制及FTA区域价值成分。" }}
+            ko: {{ badge: "HUD Futuristic Big Data Trade Intelligence", title1: "반도체 수출 적합성의", title2: "새로운 기준, Axport", subtitle: "실제 글로벌 무역망과 연결된 반도체 수출 통제 AI 진단 플랫폼", btnDash: "대시보드 시작하기", aboutH2: "복잡한 통제 규제를 <br>단 하나의 흐름으로", aboutP: "Axport는 기업의 원시 데이터를 실시간 스트리밍하여, 미 상무부 BIS 수출통제와 FTA 부가가치기준을 완전 자동으로 판정합니다." }},
+            en: {{ badge: "HUD Futuristic Big Data Trade Intelligence", title1: "A New Standard for", title2: "Semiconductor Export, Axport", subtitle: "AI-Powered Semiconductor Export Compliance Platform Connected to Global Trade Networks", btnDash: "Launch Dashboard", aboutH2: "Complex Trade Regulations <br>In a Single Seamless Flow", aboutP: "Axport automatically streams raw ERP data to audit US BIS ECCN controls and FTA Regional Value Content in real time." }},
+            ja: {{ badge: "HUD Futuristic Big Data Trade Intelligence", title1: "半導体輸出適合性の", title2: "新たな基準、Axport", subtitle: "グローバル貿易ネットワークと直結した半導体輸出管理AIプラットフォーム", btnDash: "ダッシュボードを開始", aboutH2: "複雑な規制対応を <br>ひとつのスムーズな流れに", aboutP: "Axportは企業の生データを直接解析し、米BIS ECCN規制およびFTA原産地付加価値基準を自動診断します。" }},
+            zh: {{ badge: "HUD Futuristic Big Data Trade Intelligence", title1: "半导体出口合规的", title2: "全新标准，Axport", subtitle: "深度连接全球贸易网络的半导体出口合规人工智能平台", btnDash: "进入数据看板", aboutH2: "化繁为简 <br>一体化智能合规流程", aboutP: "Axport实时解析企业ERP原始数据，全面自动核查美国BIS ECCN出口管制及FTA区域价值成分。" }}
         }};
 
         function changeLanguage(lang) {{
@@ -724,21 +736,34 @@ raw_html = f"""
             if(tabId === 'tab-summary') {{ setTimeout(() => {{ initOrUpdateCharts(); }}, 50); }}
         }}
 
-        // 4. Sketchfab 홀로그램 3D 엔진
-        let globeScene, globeCamera, globeRenderer, globeGroup, raysGroup, ring1, ring2;
-        let baseRadius = 54;
+        // 4. [Storyblocks HUD 미래형 디지털 지구본 3D 엔진]
+        let globeScene, globeCamera, globeRenderer, globeGroup, hudGroup;
+        let hudRing1, hudRing2, hudRing3, hudTickRing, hudBrackets;
+        let baseRadius = 55;
         let scrollYProgress = 0;
 
-        function createHologramTexture() {{
+        function latLonToVec3(lat, lon, radius) {{
+            const phi = (90 - lat) * (Math.PI / 180);
+            const theta = (lon + 180) * (Math.PI / 180);
+            return new THREE.Vector3(
+                -(radius * Math.sin(phi) * Math.cos(theta)),
+                radius * Math.cos(phi),
+                radius * Math.sin(phi) * Math.sin(theta)
+            );
+        }}
+
+        // 영상과 일치하는 실제 세계 대륙 도트/선 실루엣 텍스처
+        function createHUDContinentTexture() {{
             const canvas = document.createElement('canvas');
             canvas.width = 2048;
             canvas.height = 1024;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#00f0ff';
+            // 대륙 경계선 및 내부 도트 매트릭스 필
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.45)';
             ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
 
             function drawLand(coords) {{
                 ctx.beginPath();
@@ -782,13 +807,35 @@ raw_html = f"""
             return new THREE.CanvasTexture(canvas);
         }}
 
+        // HUD 눈금 텍스처 (영상에 나오는 인터페이스 눈금 링)
+        function createTickRingTexture() {{
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            for(let x = 0; x < canvas.width; x += 16) {{
+                const h = (x % 64 === 0) ? 90 : 45;
+                ctx.beginPath();
+                ctx.moveTo(x, 64 - h/2);
+                ctx.lineTo(x, 64 + h/2);
+                ctx.stroke();
+            }}
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.repeat.set(4, 1);
+            return tex;
+        }}
+
         function init3DGlobe() {{
             const container = document.getElementById('globe-container');
             if(!container) return;
 
             globeScene = new THREE.Scene();
             globeCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            globeCamera.position.set(0, 0, 160);
+            globeCamera.position.set(0, 0, 165);
 
             globeRenderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
             globeRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -798,69 +845,145 @@ raw_html = f"""
             globeGroup = new THREE.Group();
             globeScene.add(globeGroup);
 
-            // 코어 구체
-            const coreGeo = new THREE.SphereGeometry(baseRadius - 0.5, 48, 48);
-            const coreMat = new THREE.MeshBasicMaterial({{ color: 0x051329, transparent: true, opacity: 0.85 }});
+            // 1. 내부 딥 블루 코어 구체
+            const coreGeo = new THREE.SphereGeometry(baseRadius - 0.6, 48, 48);
+            const coreMat = new THREE.MeshBasicMaterial({{ color: 0x051329, transparent: true, opacity: 0.9 }});
             globeGroup.add(new THREE.Mesh(coreGeo, coreMat));
 
-            // 대륙 홀로그램 에미션
-            const holoTex = createHologramTexture();
-            const holoGeo = new THREE.SphereGeometry(baseRadius, 64, 64);
-            const holoMat = new THREE.MeshBasicMaterial({{
-                map: holoTex,
+            // 2. 영상의 선명한 홀로그램 대륙 껍질
+            const continentTex = createHUDContinentTexture();
+            const globeGeo = new THREE.SphereGeometry(baseRadius, 64, 64);
+            const globeMat = new THREE.MeshBasicMaterial({{
+                map: continentTex,
                 transparent: true,
                 opacity: 0.95,
                 blending: THREE.AdditiveBlending
             }});
-            const holoMesh = new THREE.Mesh(holoGeo, holoMat);
-            globeGroup.add(holoMesh);
+            const continentMesh = new THREE.Mesh(globeGeo, globeMat);
+            globeGroup.add(continentMesh);
 
-            // 격자망
-            const gridGeo = new THREE.SphereGeometry(baseRadius + 0.2, 32, 16);
+            // 3. 정밀 위도/경도 경량 격자망
+            const gridGeo = new THREE.SphereGeometry(baseRadius + 0.3, 36, 18);
             const gridMat = new THREE.MeshBasicMaterial({{
                 color: 0x00f0ff,
                 wireframe: true,
                 transparent: true,
-                opacity: 0.18
+                opacity: 0.2
             }});
             globeGroup.add(new THREE.Mesh(gridGeo, gridMat));
 
-            // 방사형 레이 빔 (스케치팹 특징)
-            raysGroup = new THREE.Group();
-            globeGroup.add(raysGroup);
-            for(let i = 0; i < 45; i++) {{
-                const rayLen = baseRadius * (1.15 + Math.random() * 0.35);
-                const phi = Math.random() * Math.PI;
-                const theta = Math.random() * Math.PI * 2;
-                const p1 = new THREE.Vector3(
-                    baseRadius * Math.sin(phi) * Math.cos(theta),
-                    baseRadius * Math.cos(phi),
-                    baseRadius * Math.sin(phi) * Math.sin(theta)
+            // 4. [영상 핵심 요소] HUD 인터페이스 다층 링 & 조준 시스템
+            hudGroup = new THREE.Group();
+            globeGroup.add(hudGroup);
+
+            // A. 적도 눈금 링 (HUD Tick Ring)
+            const tickGeo = new THREE.RingGeometry(baseRadius * 1.22, baseRadius * 1.28, 64);
+            const tickMat = new THREE.MeshBasicMaterial({{
+                map: createTickRingTexture(),
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            }});
+            hudTickRing = new THREE.Mesh(tickGeo, tickMat);
+            hudTickRing.rotation.x = Math.PI / 2;
+            hudGroup.add(hudTickRing);
+
+            // B. 기울어진 궤도 점선 링 1
+            const ringGeo1 = new THREE.RingGeometry(baseRadius * 1.36, baseRadius * 1.38, 64);
+            const ringMat1 = new THREE.MeshBasicMaterial({{
+                color: 0x38bdf8,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            }});
+            hudRing1 = new THREE.Mesh(ringGeo1, ringMat1);
+            hudRing1.rotation.x = Math.PI / 3;
+            hudGroup.add(hudRing1);
+
+            // C. 역방향 오비탈 링 2
+            const ringGeo2 = new THREE.RingGeometry(baseRadius * 1.48, baseRadius * 1.50, 64);
+            const ringMat2 = new THREE.MeshBasicMaterial({{
+                color: 0x00f0ff,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.45,
+                blending: THREE.AdditiveBlending
+            }});
+            hudRing2 = new THREE.Mesh(ringGeo2, ringMat2);
+            hudRing2.rotation.x = -Math.PI / 4;
+            hudGroup.add(hudRing2);
+
+            // D. HUD 타깃 브래킷 (네 귀퉁이 조준선)
+            hudBrackets = new THREE.Group();
+            hudGroup.add(hudBrackets);
+            const bracketMat = new THREE.LineBasicMaterial({{ color: 0x00f0ff, transparent: true, opacity: 0.7 }});
+            const bR = baseRadius * 1.6;
+            const bPts = [
+                // Top-Left bracket
+                [new THREE.Vector3(-bR, bR * 0.8, 0), new THREE.Vector3(-bR, bR, 0)],
+                [new THREE.Vector3(-bR, bR, 0), new THREE.Vector3(-bR * 0.8, bR, 0)],
+                // Top-Right bracket
+                [new THREE.Vector3(bR * 0.8, bR, 0), new THREE.Vector3(bR, bR, 0)],
+                [new THREE.Vector3(bR, bR, 0), new THREE.Vector3(bR, bR * 0.8, 0)],
+                // Bottom-Left
+                [new THREE.Vector3(-bR, -bR * 0.8, 0), new THREE.Vector3(-bR, -bR, 0)],
+                [new THREE.Vector3(-bR, -bR, 0), new THREE.Vector3(-bR * 0.8, -bR, 0)],
+                // Bottom-Right
+                [new THREE.Vector3(bR * 0.8, -bR, 0), new THREE.Vector3(bR, -bR, 0)],
+                [new THREE.Vector3(bR, -bR, 0), new THREE.Vector3(bR, -bR * 0.8, 0)],
+            ];
+            bPts.forEach(([p1, p2]) => {{
+                const geo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+                hudBrackets.add(new THREE.Line(geo, bracketMat));
+            }});
+
+            // 5. 빅데이터 무역 공급망 발광 노드 및 아크
+            const hubs = [
+                {{ lat: 37.56, lon: 126.97 }},  // 한국
+                {{ lat: 37.77, lon: -122.41 }}, // 미국 실리콘밸리
+                {{ lat: 24.78, lon: 120.99 }},  // 대만
+                {{ lat: 21.02, lon: 105.83 }},  // 베트남
+                {{ lat: 51.05, lon: 13.73 }}    // 유럽
+            ];
+
+            hubs.forEach(h => {{
+                const pos = latLonToVec3(h.lat, h.lon, baseRadius + 0.5);
+                const dot = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.6, 12, 12),
+                    new THREE.MeshBasicMaterial({{ color: 0x67e8f9 }})
                 );
-                const p2 = p1.clone().multiplyScalar(rayLen / baseRadius);
-                const rayGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
-                const rayMat = new THREE.LineBasicMaterial({{
-                    color: 0x38bdf8,
-                    transparent: true,
-                    opacity: 0.3 + Math.random() * 0.5,
-                    blending: THREE.AdditiveBlending
-                }});
-                raysGroup.add(new THREE.Line(rayGeo, rayMat));
+                dot.position.copy(pos);
+                globeGroup.add(dot);
+
+                // 수직 데이터 기둥 (Big Data Pillar)
+                const p2 = pos.clone().multiplyScalar(1.12);
+                const colGeo = new THREE.BufferGeometry().setFromPoints([pos, p2]);
+                const colMat = new THREE.LineBasicMaterial({{ color: 0x00f0ff, transparent: true, opacity: 0.8 }});
+                globeGroup.add(new THREE.Line(colGeo, colMat));
+            }});
+
+            function addTradeArc(from, to) {{
+                const p1 = latLonToVec3(from.lat, from.lon, baseRadius + 0.5);
+                const p2 = latLonToVec3(to.lat, to.lon, baseRadius + 0.5);
+                const mid = p1.clone().add(p2).multiplyScalar(0.5);
+                const dist = p1.distanceTo(p2);
+                mid.setLength(baseRadius + dist * 0.28);
+
+                const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
+                const pts = curve.getPoints(32);
+                const geo = new THREE.BufferGeometry().setFromPoints(pts);
+                const mat = new THREE.LineBasicMaterial({{ color: 0x00f0ff, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending }});
+                globeGroup.add(new THREE.Line(geo, mat));
             }}
 
-            // 오비탈 링
-            const ringGeo1 = new THREE.RingGeometry(baseRadius * 1.25, baseRadius * 1.27, 64);
-            const ringMat1 = new THREE.MeshBasicMaterial({{ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending }});
-            ring1 = new THREE.Mesh(ringGeo1, ringMat1);
-            ring1.rotation.x = Math.PI / 2.5;
-            globeGroup.add(ring1);
+            addTradeArc(hubs[0], hubs[1]);
+            addTradeArc(hubs[0], hubs[2]);
+            addTradeArc(hubs[0], hubs[3]);
+            addTradeArc(hubs[0], hubs[4]);
 
-            const ringGeo2 = new THREE.RingGeometry(baseRadius * 1.4, baseRadius * 1.42, 64);
-            const ringMat2 = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending }});
-            ring2 = new THREE.Mesh(ringGeo2, ringMat2);
-            ring2.rotation.x = -Math.PI / 3;
-            globeGroup.add(ring2);
-
+            // 스크롤 감지
             window.addEventListener('scroll', () => {{
                 const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
                 scrollYProgress = Math.max(0, Math.min(1, window.scrollY / (maxScroll || 1)));
@@ -873,19 +996,26 @@ raw_html = f"""
             }});
 
             let clock = new THREE.Clock();
+
+            // 렌더 루프: 영상의 HUD 눈금 및 오비탈 다층 회전 루핑 애니메이션
             function animate() {{
                 requestAnimationFrame(animate);
                 const time = clock.getElapsedTime();
 
-                holoMesh.rotation.y = time * 0.16;
-                ring1.rotation.z = -time * 0.12;
-                ring2.rotation.z = time * 0.08;
+                // 1. 지구본 자전
+                continentMesh.rotation.y = time * 0.16;
 
-                raysGroup.rotation.y = time * 0.1;
-                raysGroup.children.forEach((r, idx) => {{
-                    r.material.opacity = 0.25 + 0.35 * Math.sin(time * 3.0 + idx);
-                }});
+                // 2. HUD 눈금 링 역방향 고속 회전
+                hudTickRing.rotation.z = -time * 0.25;
 
+                // 3. 오비탈 궤도 링 교차 회전
+                hudRing1.rotation.z = time * 0.14;
+                hudRing2.rotation.z = -time * 0.10;
+
+                // 4. 브래킷 조준선 부드러운 펄스 회전
+                hudBrackets.rotation.z = Math.sin(time * 0.5) * 0.15;
+
+                // 5. 스크롤 줌인 & 공간 이동 (Scrollytelling)
                 const targetX = scrollYProgress * 36;
                 const targetY = -scrollYProgress * 6;
                 const targetScale = 1.0 + scrollYProgress * 0.35;
