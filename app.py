@@ -52,8 +52,9 @@ def get_image_base64(file_path):
                 pass
     return ""
 
-logo_path = r"C:\Users\user\Desktop\axport_demo_gemini\Axport_logo_png.png"
-chatbot_img_path = r"C:\Users\user\Desktop\axport_demo_gemini\Axport_AI.png"
+# app.py와 같은 폴더에 있을 때는 파일명만 적어주면 됩니다.
+logo_path = "Axport_logo_png.png"
+chatbot_img_path = "Axport_AI.png"
 
 logo_b64 = get_image_base64(logo_path)
 chatbot_b64 = get_image_base64(chatbot_img_path)
