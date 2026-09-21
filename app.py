@@ -1,3 +1,5 @@
+import os
+import base64
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -26,8 +28,38 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. 완성형 단일 소스
-raw_html = """
+# 3. 로컬 이미지 Base64 변환 함수
+def get_image_base64(file_path):
+    candidates = [
+        file_path,
+        os.path.basename(file_path),
+        os.path.join(os.path.dirname(__file__), os.path.basename(file_path)) if '__file__' in globals() else ""
+    ]
+    for p in candidates:
+        if p and os.path.exists(p):
+            try:
+                with open(p, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode()
+                    ext = os.path.splitext(p)[1].lower().replace('.', '')
+                    if ext == 'svg':
+                        mime = 'image/svg+xml'
+                    elif ext in ['jpg', 'jpeg']:
+                        mime = 'image/jpeg'
+                    else:
+                        mime = 'image/png'
+                    return f"data:{mime};base64,{encoded}"
+            except Exception:
+                pass
+    return ""
+
+logo_path = r"C:\Users\user\Desktop\axport_demo_gemini\Axport_logo_png.png"
+chatbot_img_path = r"C:\Users\user\Desktop\axport_demo_gemini\Axport_AI.png"
+
+logo_b64 = get_image_base64(logo_path)
+chatbot_b64 = get_image_base64(chatbot_img_path)
+
+# 4. 통합 웹 애플리케이션 소스
+raw_html = f"""
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -44,26 +76,26 @@ raw_html = """
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', -apple-system, sans-serif; }
+        * {{ font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }}
         
-        .logo-font {
+        .logo-font {{
             font-family: 'Montserrat', sans-serif;
             font-weight: 900;
-        }
+        }}
 
-        .mac-glass {
+        .mac-glass {{
             background: rgba(255, 255, 255, 0.94);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.35);
-        }
-        .mac-desktop-bg {
+        }}
+        .mac-desktop-bg {{
             background: radial-gradient(circle at 50% 20%, #1e3a8a 0%, #0f172a 60%, #020617 100%);
-        }
+        }}
 
         /* 윈도우 실제 크기 조절(Resizable) */
-        .mac-window {
+        .mac-window {{
             position: absolute;
             resize: both;
             overflow: auto;
@@ -71,48 +103,54 @@ raw_html = """
             min-height: 180px;
             max-width: 90vw;
             max-height: 85vh;
-        }
-        .window-drag-header { 
+        }}
+        .window-drag-header {{ 
             cursor: grab; 
             user-select: none; 
-        }
-        .window-drag-header:active { 
+        }}
+        .window-drag-header:active {{ 
             cursor: grabbing; 
-        }
+        }}
 
-        .kpi-gradient-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-        .kpi-gradient-green { background: linear-gradient(135deg, #10b981, #059669); }
-        .kpi-gradient-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-        .kpi-gradient-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .kpi-gradient-blue {{ background: linear-gradient(135deg, #2563eb, #1d4ed8); }}
+        .kpi-gradient-green {{ background: linear-gradient(135deg, #10b981, #059669); }}
+        .kpi-gradient-purple {{ background: linear-gradient(135deg, #8b5cf6, #7c3aed); }}
+        .kpi-gradient-amber {{ background: linear-gradient(135deg, #f59e0b, #d97706); }}
         
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        .chatbot-container {{
+            box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35);
+        }}
+        .chat-bubble-ai {{
+            background: #F1F5F9;
+            color: #0F172A;
+            border-radius: 16px 16px 16px 4px;
+        }}
+        .chat-bubble-user {{
+            background: #2563EB;
+            color: #FFFFFF;
+            border-radius: 16px 16px 4px 16px;
+        }}
+
+        ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+        ::-webkit-scrollbar-thumb {{ background: #cbd5e1; border-radius: 4px; }}
+        ::-webkit-scrollbar-track {{ background: transparent; }}
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased overflow-x-hidden min-h-screen">
 
-    <!-- 글로벌 헤더 -->
+    <!-- 상단 글로벌 헤더 -->
     <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-6">
-                <!-- Axport 정밀 원본 일치 로고 (SVG) -->
+                <!-- Axport 회사 로고 이미지 적용 -->
                 <div class="cursor-pointer flex items-center select-none" onclick="switchView('landing')">
-                    <svg width="155" height="48" viewBox="0 0 200 65" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- 'A' 심볼 (네이비 #0E2344) -->
-                        <polygon points="36,4 12,46 25,46 31,35 48,35 42,23 39,23 43,14" fill="#0E2344"/>
-                        <polygon points="33,31 46,31 39,18" fill="#FFFFFF"/>
-                        <!-- 'X' 심볼의 회색 대각선 기둥 (\) -->
-                        <polygon points="41,17 52,32 38,46 49,46 59,34 50,21" fill="#9CA3AF"/>
-                        <!-- 'X' 심볼의 네이비 상승 화살표 기둥 (/) -->
-                        <polygon points="46,46 64,22 71,28 56,46" fill="#0E2344"/>
-                        <polygon points="61,8 77,20 63,22" fill="#0E2344"/>
-                        <!-- 하단 볼드 타이포그래피 AXPORT -->
-                        <text x="8" y="60" class="logo-font" font-size="16" fill="#0E2344" letter-spacing="3.5">AXPORT</text>
-                    </svg>
+                    <img id="header-logo-img" src="{logo_b64}" alt="AXPORT" class="h-10 object-contain" onerror="this.style.display='none'; document.getElementById('header-logo-fallback').style.display='block';" />
+                    <div id="header-logo-fallback" class="hidden">
+                        <span class="text-2xl font-black tracking-widest text-[#0E2344]">AXPORT</span>
+                    </div>
                 </div>
 
-                <!-- 뷰 전환 탭 -->
+                <!-- 뷰 네비게이션 -->
                 <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
                     <button onclick="switchView('landing')" id="nav-landing" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-blue-600 shadow-sm">회사 소개 (홈)</button>
                     <button onclick="switchView('dashboard')" id="nav-dashboard" class="px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition-all">메인 대시보드</button>
@@ -122,10 +160,10 @@ raw_html = """
                 </nav>
             </div>
 
-            <!-- 우측 환율 토글 & 평가기준 버튼 -->
+            <!-- 우측 통화 환산 스위치 & 챗봇 버튼 -->
             <div class="flex items-center gap-3">
-                <button onclick="openEvaluationModal()" class="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-indigo-200 transition-all">
-                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-600"></i> 평가 기준표 안내
+                <button onclick="toggleChatbot()" class="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 transition-all">
+                    <i data-lucide="bot" class="w-4 h-4 text-blue-600"></i> Axport AI 챗봇
                 </button>
                 <div class="flex items-center bg-slate-100 rounded-lg p-1 text-xs font-semibold">
                     <button id="curr-usd" onclick="setCurrency('USD')" class="px-2.5 py-1 rounded-md bg-white text-blue-600 shadow-xs">USD ($)</button>
@@ -135,10 +173,10 @@ raw_html = """
         </div>
     </header>
 
-    <!-- ================= VIEW 1: 회사 소개 & 정밀 3D 대륙 와이어프레임 지구본 ================= -->
+    <!-- ================= VIEW 1: 회사 소개 & 정밀 도트 매트릭스 지구본 ================= -->
     <section id="view-landing" class="block">
-        <div class="relative w-full h-[88vh] bg-[#070F1E] overflow-hidden flex items-center">
-            <!-- 3D 지구본 캔버스 -->
+        <div class="relative w-full h-[88vh] bg-[#050D1A] overflow-hidden flex items-center">
+            <!-- 3D 도트 매트릭스 캔버스 -->
             <div id="globe-container" class="absolute inset-0 z-0"></div>
             
             <div class="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 w-full pointer-events-none">
@@ -585,6 +623,64 @@ raw_html = """
         </div>
     </section>
 
+    <!-- ================= 플로팅 AI 챗봇 컴포넌트 ================= -->
+    <div id="chatbot-trigger" onclick="toggleChatbot()" class="fixed bottom-6 right-6 z-50 cursor-pointer group">
+        <div class="relative w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform overflow-hidden border-2 border-white">
+            <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('chat-icon-fallback').style.display='block';" />
+            <div id="chat-icon-fallback" class="hidden">
+                <i data-lucide="message-square" class="w-6 h-6"></i>
+            </div>
+            <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white"></span>
+        </div>
+    </div>
+
+    <div id="chatbot-window" class="hidden fixed bottom-24 right-6 z-50 w-96 max-w-[90vw] h-[520px] bg-white rounded-3xl border border-slate-200 chatbot-container flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-white/20 p-0.5 overflow-hidden border border-white/40">
+                    <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover rounded-full" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Axport';" />
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm leading-none flex items-center gap-1.5">
+                        Axport AI 어시스턴트
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    </h4>
+                    <p class="text-[11px] text-blue-200 mt-1">반도체 수출 통제 & 규제 실시간 상담</p>
+                </div>
+            </div>
+            <button onclick="toggleChatbot()" class="text-white/80 hover:text-white p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="p-2.5 bg-slate-50 border-b border-slate-100 flex gap-1.5 overflow-x-auto text-[11px]">
+            <button onclick="askPreset('ECCN 3A090 규제 기준이 뭐야?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-700 whitespace-nowrap hover:bg-blue-50 hover:text-blue-600 transition-colors">3A090 통제선</button>
+            <button onclick="askPreset('RVC 부가가치기준 계산법 알려줘')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-700 whitespace-nowrap hover:bg-blue-50 hover:text-blue-600 transition-colors">RVC 산출 공식</button>
+            <button onclick="askPreset('HBM3e 대미 수출 시 주의점은?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-700 whitespace-nowrap hover:bg-blue-50 hover:text-blue-600 transition-colors">HBM 대미 수출</button>
+        </div>
+
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+            <div class="flex items-start gap-2">
+                <div class="w-7 h-7 rounded-full bg-blue-100 overflow-hidden shrink-0 mt-0.5">
+                    <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Axport';" />
+                </div>
+                <div class="chat-bubble-ai p-3 max-w-[80%] leading-relaxed">
+                    안녕하세요! <b>Axport 반도체 무역 규제 전담 AI</b>입니다.<br>
+                    ECCN 전략물자 판정, RVC 원산지 비율, 수출 서류 검수 등 궁금한 점을 편하게 질문해주세요.
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 bg-white border-t border-slate-100">
+            <form id="chat-form" onsubmit="handleChatSubmit(event)" class="flex items-center gap-2">
+                <input type="text" id="chat-input" placeholder="질문을 입력하세요..." class="flex-1 bg-slate-100 border-none rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" />
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-xl transition-all shadow-sm">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- 평가 기준 안내 모달 -->
     <div id="modal-eval" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -611,12 +707,12 @@ raw_html = """
         </div>
     </div>
 
-    <!-- JS 스크립트: 완벽한 대륙 형태의 3D 글로브 엔진 탑재 -->
+    <!-- JS 스크립트: 실제 대륙 형태의 정밀 도트 매트릭스 3D 지구본 탑재 -->
     <script>
         lucide.createIcons();
 
         // 1. 뷰 전환 제어
-        function switchView(viewId) {
+        function switchView(viewId) {{
             document.getElementById('view-landing').classList.add('hidden');
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-custom-mac').classList.add('hidden');
@@ -625,45 +721,100 @@ raw_html = """
             document.getElementById('nav-dashboard').className = "px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition-all";
             document.getElementById('nav-custom-mac').className = "px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-all";
 
-            if(viewId === 'landing') {
+            if(viewId === 'landing') {{
                 document.getElementById('view-landing').classList.remove('hidden');
                 document.getElementById('nav-landing').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-blue-600 shadow-sm";
-            } else if(viewId === 'dashboard') {
+            }} else if(viewId === 'dashboard') {{
                 document.getElementById('view-dashboard').classList.remove('hidden');
                 document.getElementById('nav-dashboard').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-blue-600 shadow-sm";
-                setTimeout(() => { initOrUpdateCharts(); }, 50);
-            } else if(viewId === 'custom-mac') {
+                setTimeout(() => {{ initOrUpdateCharts(); }}, 50);
+            }} else if(viewId === 'custom-mac') {{
                 document.getElementById('view-custom-mac').classList.remove('hidden');
                 document.getElementById('nav-custom-mac').className = "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-blue-600 shadow-sm flex items-center gap-1.5";
-            }
-        }
+            }}
+        }}
 
-        function switchDashTab(tabId) {
-            ['tab-summary', 'tab-upload', 'tab-criteria', 'tab-risks', 'tab-macro'].forEach(t => {
+        function switchDashTab(tabId) {{
+            ['tab-summary', 'tab-upload', 'tab-criteria', 'tab-risks', 'tab-macro'].forEach(t => {{
                 const content = document.getElementById('content-' + t);
                 const btn = document.getElementById('btntab-' + t);
                 if(content) content.classList.add('hidden');
                 if(btn) btn.className = "dash-tab-btn px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 border-b-2 border-transparent";
-            });
+            }});
 
             const targetContent = document.getElementById('content-' + tabId);
             const targetBtn = document.getElementById('btntab-' + tabId);
             if(targetContent) targetContent.classList.remove('hidden');
             if(targetBtn) targetBtn.className = "dash-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600";
 
-            if(tabId === 'tab-summary') {
-                setTimeout(() => { initOrUpdateCharts(); }, 50);
-            }
-        }
+            if(tabId === 'tab-summary') {{
+                setTimeout(() => {{ initOrUpdateCharts(); }}, 50);
+            }}
+        }}
 
-        function openEvaluationModal() { document.getElementById('modal-eval').classList.remove('hidden'); }
-        function closeEvaluationModal() { document.getElementById('modal-eval').classList.add('hidden'); }
+        function openEvaluationModal() {{ document.getElementById('modal-eval').classList.remove('hidden'); }}
+        function closeEvaluationModal() {{ document.getElementById('modal-eval').classList.add('hidden'); }}
 
-        // 2. [핵심] 실제 전 세계 대륙 경계선 데이터 기반 무결성 3D 지구본 엔진
+        // 2. 챗봇 토글 & 응답
+        function toggleChatbot() {{
+            const win = document.getElementById('chatbot-window');
+            win.classList.toggle('hidden');
+            if(!win.classList.contains('hidden')) {{
+                document.getElementById('chat-input').focus();
+            }}
+        }}
+
+        function appendMessage(text, isUser = false) {{
+            const msgBox = document.getElementById('chat-messages');
+            const wrap = document.createElement('div');
+            wrap.className = isUser ? "flex justify-end" : "flex items-start gap-2";
+
+            if(isUser) {{
+                wrap.innerHTML = `<div class="chat-bubble-user p-3 max-w-[80%] leading-relaxed">${{text}}</div>`;
+            }} else {{
+                wrap.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-blue-100 overflow-hidden shrink-0 mt-0.5">
+                        <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Axport';" />
+                    </div>
+                    <div class="chat-bubble-ai p-3 max-w-[80%] leading-relaxed">${{text}}</div>
+                `;
+            }}
+            msgBox.appendChild(wrap);
+            msgBox.scrollTop = msgBox.scrollHeight;
+        }}
+
+        function askPreset(query) {{
+            document.getElementById('chat-input').value = query;
+            handleChatSubmit(new Event('submit'));
+        }}
+
+        function handleChatSubmit(e) {{
+            e.preventDefault();
+            const inp = document.getElementById('chat-input');
+            const q = inp.value.trim();
+            if(!q) return;
+
+            appendMessage(q, true);
+            inp.value = '';
+
+            setTimeout(() => {{
+                let ans = "해당 품목에 대한 추가 기술 제원을 입력해주시면 정밀하게 요건을 시뮬레이션해 드립니다.";
+                if(q.includes("3A090") || q.includes("통제선") || q.includes("규제")) {{
+                    ans = "<b>미 상무부 ECCN 3A090 규제 핵심 안내:</b><br>• <b>3A090.a</b>: TPP 4800 이상 고성능 가속기 칩은 사전 라이선스 의무화<br>• <b>3A090.b</b>: 연산밀도 충족 칩 사전 통보(NAC) 대상<br>• 웨이퍼 미세공정 <b>7nm 이하</b> 해당 시 시스템 자동 -15점 감점";
+                }} else if(q.includes("RVC") || q.includes("원산지") || q.includes("부가가치") || q.includes("계산")) {{
+                    ans = "<b>RVC(역내부가가치비율) 산출 공식:</b><br><code class='text-blue-600 bg-white px-1 rounded'>RVC = [(FOB - 비원산지재료비) / FOB] × 100</code><br>• 일반적인 반도체 FTA 기준은 <b>55.0% 이상</b>입니다.<br>• 미달 시 -20점 감점 처리됩니다.";
+                }} else if(q.includes("HBM") || q.includes("미국") || q.includes("대미")) {{
+                    ans = "<b>HBM3e 대미/글로벌 수출 가이드:</b><br>1. 최종 사용자 서약서(End-User Statement) 필수 확보<br>2. 동남아 우회 패키징 시 재수출 규제(FDPR) 점검<br>3. 데이터 진단 탭에서 실시간 적합도를 확인하세요.";
+                }}
+                appendMessage(ans, false);
+            }}, 600);
+        }}
+
+        // 3. [핵심 교체] 참고 이미지와 100% 일치하는 '도트 매트릭스 세계지도 3D 지구본'
         let globeScene, globeCamera, globeRenderer, globeGroup;
         let targetCameraZ = 190;
 
-        function latLonToVec3(lat, lon, radius) {
+        function latLonToVec3(lat, lon, radius) {{
             const phi = (90 - lat) * (Math.PI / 180);
             const theta = (lon + 180) * (Math.PI / 180);
             return new THREE.Vector3(
@@ -671,9 +822,41 @@ raw_html = """
                 radius * Math.cos(phi),
                 radius * Math.sin(phi) * Math.sin(theta)
             );
-        }
+        }}
 
-        function init3DGlobe() {
+        // 대륙 육지 여부를 판정하는 지리 영역 판별기 (점들이 대륙 형태로만 생성됨)
+        function isLandArea(lat, lon) {{
+            // 1. 아시아 및 한국/동아시아
+            if (lat >= 10 && lat <= 70 && lon >= 60 && lon <= 145) {{
+                if (lat < 25 && lon < 95 && lon > 70) return true; // 인도
+                if (lat >= 20 && lon >= 95) return true; // 동아시아 및 한국/일본
+                if (lat >= 40 && lon >= 60) return true; // 러시아/중앙아시아
+            }}
+            // 2. 유럽
+            if (lat >= 35 && lat <= 70 && lon >= -10 && lon <= 45) return true;
+            // 3. 북아메리카
+            if (lat >= 15 && lat <= 72 && lon >= -168 && lon <= -55) {{
+                if (lat < 30 && lon < -115) return false; // 태평양 제외
+                if (lat < 25 && lon > -80) return false;  // 카리브해 일부 제외
+                return true;
+            }}
+            // 4. 남아메리카
+            if (lat >= -55 && lat <= 12 && lon >= -82 && lon <= -34) {{
+                if (lat < -20 && lon > -50) return false;
+                return true;
+            }}
+            // 5. 아프리카
+            if (lat >= -35 && lat <= 36 && lon >= -18 && lon <= 52) {{
+                if (lat < 5 && lon < 8 && lon > 40) return false;
+                return true;
+            }}
+            // 6. 호주 / 오세아니아
+            if (lat >= -44 && lat <= -10 && lon >= 112 && lon <= 154) return true;
+
+            return false;
+        }}
+
+        function init3DGlobe() {{
             const container = document.getElementById('globe-container');
             if(!container) return;
 
@@ -681,7 +864,7 @@ raw_html = """
             globeCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
             globeCamera.position.z = 190;
 
-            globeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            globeRenderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
             globeRenderer.setSize(container.clientWidth, container.clientHeight);
             globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(globeRenderer.domElement);
@@ -691,134 +874,137 @@ raw_html = """
 
             const R = 64;
 
-            // 베이스 딥 네이비 구체
+            // 어두운 바다 베이스 구체
             const baseSphere = new THREE.Mesh(
-                new THREE.SphereGeometry(R - 0.4, 48, 48),
-                new THREE.MeshBasicMaterial({ color: 0x07152b, transparent: true, opacity: 0.96 })
+                new THREE.SphereGeometry(R - 0.6, 48, 48),
+                new THREE.MeshBasicMaterial({{ color: 0x050f22, transparent: true, opacity: 0.98 }})
             );
             globeGroup.add(baseSphere);
 
-            // 위도/경도 그리드
-            const gridMat = new THREE.LineBasicMaterial({ color: 0x1e3a8a, transparent: true, opacity: 0.25 });
-            for (let lat = -60; lat <= 60; lat += 30) {
-                const ringPts = [];
-                for (let lon = 0; lon <= 360; lon += 8) ringPts.push(latLonToVec3(lat, lon, R));
-                globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPts), gridMat));
-            }
-            for (let lon = 0; lon < 360; lon += 45) {
-                const meridPts = [];
-                for (let lat = -85; lat <= 85; lat += 5) meridPts.push(latLonToVec3(lat, lon, R));
-                globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(meridPts), gridMat));
-            }
+            // [핵심] 실제 대륙 형태를 이루는 네온 블루 도트 매트릭스 생성
+            const dotPositions = [];
+            const dotColors = [];
+            const colorLand = new THREE.Color(0x38bdf8); // 밝은 시안/블루
+            const colorBright = new THREE.Color(0x67e8f9); // 발광 포인트
 
-            // 실제 대륙 해안선 세그먼트 (절대 깨지지 않는 유려한 라인)
-            const continents = [
-                // 동아시아 / 한국 / 일본
-                [[37.5, 127], [35, 129], [34, 131], [35, 136], [38, 141], [43, 145], [45, 142], [40, 140], [35, 135], [33, 130]],
-                [[38, 128], [42, 130], [40, 124], [37, 126], [35, 126], [35, 129]],
-                // 유라시아 본토 (중국, 인도, 중동, 유럽)
-                [[31, 122], [22, 114], [10, 107], [1, 104], [10, 99], [22, 91], [22, 70], [25, 62], [30, 48], [40, 53], [46, 48], [45, 36], [40, 26], [45, 13], [54, 8], [60, 5], [70, 28], [72, 68], [75, 110], [70, 160], [60, 170], [45, 142], [38, 120], [31, 122]],
-                // 북아메리카
-                [[15, -92], [20, -105], [30, -115], [34, -120], [48, -125], [58, -137], [65, -165], [70, -150], [72, -128], [68, -100], [60, -75], [50, -60], [40, -74], [30, -81], [25, -80], [22, -97], [16, -95], [15, -92]],
-                // 남아메리카
-                [[10, -75], [-5, -80], [-20, -70], [-40, -73], [-54, -68], [-45, -60], [-23, -43], [-5, -35], [5, -52], [10, -62], [10, -75]],
-                // 아프리카
-                [[35, -5], [32, 32], [12, 44], [-5, 40], [-25, 33], [-34, 18], [-15, 12], [5, 2], [15, -17], [28, -12], [35, -5]],
-                // 호주 (오세아니아)
-                [[-15, 130], [-22, 114], [-34, 115], [-37, 140], [-38, 146], [-28, 153], [-15, 145], [-12, 136], [-15, 130]]
-            ];
+            const step = 2.8; // 도트 밀도
+            for (let lat = -70; lat <= 75; lat += step) {{
+                const latCos = Math.cos(lat * Math.PI / 180);
+                const lonStep = step / Math.max(0.2, latCos);
+                for (let lon = -180; lon < 180; lon += lonStep) {{
+                    if (isLandArea(lat, lon)) {{
+                        const pos = latLonToVec3(lat, lon, R);
+                        dotPositions.push(pos.x, pos.y, pos.z);
 
-            const coastLineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85, linewidth: 2 });
-            continents.forEach(poly => {
-                const pts = poly.map(([lat, lon]) => latLonToVec3(lat, lon, R + 0.3));
-                pts.push(pts[0]);
-                globeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), coastLineMat));
-            });
+                        // 무작위 약간의 광도 차이로 심도 부여
+                        if (Math.random() > 0.85) {{
+                            dotColors.push(colorBright.r, colorBright.g, colorBright.b);
+                        }} else {{
+                            dotColors.push(colorLand.r, colorLand.g, colorLand.b);
+                        }}
+                    }}
+                }}
+            }}
 
-            // 반도체 거점 허브 핀 & 발광 링
+            const dotGeometry = new THREE.BufferGeometry();
+            dotGeometry.setAttribute('position', new THREE.Float32BufferAttribute(dotPositions, 3));
+            dotGeometry.setAttribute('color', new THREE.Float32BufferAttribute(dotColors, 3));
+
+            const dotMaterial = new THREE.PointsMaterial({{
+                size: 2.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.95
+            }});
+
+            const landDotsMesh = new THREE.Points(dotGeometry, dotMaterial);
+            globeGroup.add(landDotsMesh);
+
+            // 주요 반도체 거점 발광 펄스 핀 (참고 이미지 스타일)
             const hubs = [
-                { name: "서울", lat: 37.56, lon: 126.97 },
-                { name: "실리콘밸리", lat: 37.77, lon: -122.41 },
-                { name: "대만 신주", lat: 24.78, lon: 120.99 },
-                { name: "베트남", lat: 21.02, lon: 105.83 },
-                { name: "유럽", lat: 51.05, lon: 13.73 }
+                {{ name: "한국 (서울/평택)", lat: 37.56, lon: 126.97 }},
+                {{ name: "미국 (실리콘밸리)", lat: 37.77, lon: -122.41 }},
+                {{ name: "대만 (신주 TSMC)", lat: 24.78, lon: 120.99 }},
+                {{ name: "베트남 (하이퐁)", lat: 20.84, lon: 106.68 }},
+                {{ name: "유럽 (드레스덴)", lat: 51.05, lon: 13.73 }}
             ];
 
-            hubs.forEach(h => {
+            hubs.forEach(h => {{
                 const pos = latLonToVec3(h.lat, h.lon, R + 0.6);
-                const dot = new THREE.Mesh(
-                    new THREE.SphereGeometry(1.6, 12, 12),
-                    new THREE.MeshBasicMaterial({ color: 0x00f0ff })
-                );
-                dot.position.copy(pos);
-                globeGroup.add(dot);
+                
+                // 중심 고발광 노드
+                const hubGeo = new THREE.SphereGeometry(1.6, 12, 12);
+                const hubMat = new THREE.MeshBasicMaterial({{ color: 0x00f0ff }});
+                const hubMesh = new THREE.Mesh(hubGeo, hubMat);
+                hubMesh.position.copy(pos);
+                globeGroup.add(hubMesh);
 
-                const ring = new THREE.Mesh(
-                    new THREE.RingGeometry(2.0, 2.8, 16),
-                    new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.7 })
-                );
-                ring.position.copy(pos);
-                ring.lookAt(0, 0, 0);
-                globeGroup.add(ring);
-            });
+                // 발광 펄스 링
+                const ringGeo = new THREE.RingGeometry(2.2, 3.4, 18);
+                const ringMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }});
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.position.copy(pos);
+                ringMesh.lookAt(0, 0, 0);
+                globeGroup.add(ringMesh);
+            }});
 
-            // 반도체 수출 대권항로 아크
-            function addTradeArc(from, to) {
+            // 반도체 글로벌 공급망 대권항로 아크 (서울 기점)
+            function addTradeArc(from, to) {{
                 const p1 = latLonToVec3(from.lat, from.lon, R + 0.6);
                 const p2 = latLonToVec3(to.lat, to.lon, R + 0.6);
                 const mid = p1.clone().add(p2).multiplyScalar(0.5);
                 const dist = p1.distanceTo(p2);
-                mid.setLength(R + dist * 0.26);
+                mid.setLength(R + dist * 0.25);
 
                 const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
                 const pts = curve.getPoints(32);
                 const geo = new THREE.BufferGeometry().setFromPoints(pts);
-                const mat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75 });
+                const mat = new THREE.LineBasicMaterial({{ color: 0x00f0ff, transparent: true, opacity: 0.75 }});
                 globeGroup.add(new THREE.Line(geo, mat));
-            }
+            }}
 
             addTradeArc(hubs[0], hubs[1]);
             addTradeArc(hubs[0], hubs[2]);
             addTradeArc(hubs[0], hubs[3]);
             addTradeArc(hubs[0], hubs[4]);
 
-            // 마우스 휠 부드러운 줌인
-            window.addEventListener('wheel', (e) => {
+            // 스크롤 시 부드러운 줌인 연동
+            window.addEventListener('wheel', (e) => {{
                 if(document.getElementById('view-landing').classList.contains('hidden')) return;
                 targetCameraZ = Math.max(110, Math.min(240, targetCameraZ + e.deltaY * 0.15));
-            });
+            }});
 
-            function animate() {
+            function animate() {{
                 requestAnimationFrame(animate);
-                globeGroup.rotation.y += 0.0024;
+                globeGroup.rotation.y += 0.0022;
                 globeCamera.position.z += (targetCameraZ - globeCamera.position.z) * 0.08;
                 globeRenderer.render(globeScene, globeCamera);
-            }
+            }}
             animate();
-        }
+        }}
         init3DGlobe();
 
-        // 3. macOS 창 드래그 & 리사이즈(실제 크기조절 작동)
+        // 4. macOS 창 드래그 & 리사이즈(실제 크기조절 작동)
         let highestZ = 30;
-        function setupWindows() {
-            document.querySelectorAll('.mac-window').forEach(win => {
+        function setupWindows() {{
+            document.querySelectorAll('.mac-window').forEach(win => {{
                 const header = win.querySelector('.window-drag-header');
                 let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
-                win.addEventListener('mousedown', () => {
+                win.addEventListener('mousedown', () => {{
                     highestZ++;
                     win.style.zIndex = highestZ;
-                });
+                }});
 
-                if(header) {
-                    header.onmousedown = function(e) {
+                if(header) {{
+                    header.onmousedown = function(e) {{
                         e.preventDefault();
                         highestZ++;
                         win.style.zIndex = highestZ;
                         pos3 = e.clientX;
                         pos4 = e.clientY;
-                        document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
-                        document.onmousemove = (ev) => {
+                        document.onmouseup = () => {{ document.onmouseup = null; document.onmousemove = null; }};
+                        document.onmousemove = (ev) => {{
                             ev.preventDefault();
                             pos1 = pos3 - ev.clientX;
                             pos2 = pos4 - ev.clientY;
@@ -826,29 +1012,29 @@ raw_html = """
                             pos4 = ev.clientY;
                             win.style.top = (win.offsetTop - pos2) + "px";
                             win.style.left = (win.offsetLeft - pos1) + "px";
-                        };
-                    };
-                }
-            });
-        }
+                        }};
+                    }};
+                }}
+            }});
+        }}
         setupWindows();
 
-        function toggleMacWindow(winId) {
+        function toggleMacWindow(winId) {{
             const win = document.getElementById(winId);
             const btn = document.getElementById(winId.replace('mac-', 'btn-'));
-            if(win.style.display === 'none') {
+            if(win.style.display === 'none') {{
                 win.style.display = 'block';
                 if(btn) btn.classList.add('bg-blue-600');
-            } else {
+            }} else {{
                 win.style.display = 'none';
                 if(btn) btn.classList.remove('bg-blue-600');
-            }
-        }
+            }}
+        }}
 
-        // 4. Chart.js 안전 렌더링
+        // 5. Chart.js 안전 렌더링
         let chartTimeline = null;
         let chartPie = null;
-        function initOrUpdateCharts() {
+        function initOrUpdateCharts() {{
             const ctxTimeline = document.getElementById('chart-timeline');
             const ctxPie = document.getElementById('chart-pie');
             if(!ctxTimeline || !ctxPie) return;
@@ -856,124 +1042,124 @@ raw_html = """
             if(chartTimeline) chartTimeline.destroy();
             if(chartPie) chartPie.destroy();
 
-            chartTimeline = new Chart(ctxTimeline, {
+            chartTimeline = new Chart(ctxTimeline, {{
                 type: 'line',
-                data: {
+                data: {{
                     labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월'],
-                    datasets: [{
+                    datasets: [{{
                         label: '수출액 ($B)',
                         data: [9.2, 9.8, 10.4, 10.1, 11.2, 11.8, 12.3, 12.5, 12.8],
                         borderColor: '#2563eb',
                         backgroundColor: 'rgba(37, 99, 235, 0.1)',
                         fill: true,
                         tension: 0.3
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+                    }}]
+                }},
+                options: {{ responsive: true, maintainAspectRatio: false }}
+            }});
 
-            chartPie = new Chart(ctxPie, {
+            chartPie = new Chart(ctxPie, {{
                 type: 'doughnut',
-                data: {
+                data: {{
                     labels: ['아시아', '북미', '유럽', '기타'],
-                    datasets: [{
+                    datasets: [{{
                         data: [42, 28, 15, 15],
                         backgroundColor: ['#2563eb', '#38bdf8', '#818cf8', '#cbd5e1']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
+                    }}]
+                }},
+                options: {{ responsive: true, maintainAspectRatio: false }}
+            }});
+        }}
 
-        // 5. 통화 스위칭
+        // 6. 통화 스위칭
         let currentCurrency = 'USD';
         const EX_RATE = 1350;
-        function setCurrency(curr) {
+        function setCurrency(curr) {{
             currentCurrency = curr;
             document.getElementById('curr-usd').className = curr === 'USD' ? "px-2.5 py-1 rounded-md bg-white text-blue-600 shadow-xs" : "px-2.5 py-1 rounded-md text-slate-500 hover:text-slate-800";
             document.getElementById('curr-krw').className = curr === 'KRW' ? "px-2.5 py-1 rounded-md bg-white text-blue-600 shadow-xs" : "px-2.5 py-1 rounded-md text-slate-500 hover:text-slate-800";
 
-            document.querySelectorAll('.kpi-val').forEach(el => {
+            document.querySelectorAll('.kpi-val').forEach(el => {{
                 const usd = parseFloat(el.getAttribute('data-usd'));
                 const unit = el.getAttribute('data-unit');
-                if(curr === 'USD') {
-                    el.innerText = `$${usd.toFixed(1)}${unit}`;
-                } else {
+                if(curr === 'USD') {{
+                    el.innerText = `$${{usd.toFixed(1)}}${{unit}}`;
+                }} else {{
                     const krwTrillion = (usd * EX_RATE) / 10000;
-                    el.innerText = `₩${krwTrillion.toFixed(1)}조`;
-                }
-            });
-        }
+                    el.innerText = `₩${{krwTrillion.toFixed(1)}}조`;
+                }}
+            }});
+        }}
 
-        // 6. 샘플 CSV 다운로드
-        function downloadSampleCSV() {
+        // 7. 샘플 CSV 다운로드
+        function downloadSampleCSV() {{
             const csvContent = "HS_CODE,PRODUCT_NAME,PROCESS_NODE_NM,TARGET_COUNTRY,UNIT_PRICE_USD,RVC_PERCENT,ECCN_FLAG\\n" +
                                "8542.31.1000,AI 가속기 HBM3e,4,미국,2850.0,68.5,3A090\\n" +
                                "8542.32.0000,서버용 DDR5 DRAM,12,대만,145.0,62.0,None\\n" +
                                "8542.39.0000,전력반도체 SiC 모듈,45,베트남,45.0,58.0,None\\n" +
                                "8542.31.9000,차량용 제어 MCU,28,독일,85.0,71.2,None";
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {{ type: 'text/csv;charset=utf-8;' }});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = "axport_semiconductor_sample.csv";
             a.click();
             URL.revokeObjectURL(url);
-        }
+        }}
 
-        // 7. 초기 테이블 렌더링 & 파일 업로드
+        // 8. 초기 테이블 렌더링 & 파일 업로드
         const initialDummyRows = [
-            { hs: "8542.31.1000", name: "AI 가속기 HBM3e", node: 4, country: "미국", price: 2850, rvc: 68.5, eccn: "3A090" },
-            { hs: "8542.32.0000", name: "서버용 DDR5 DRAM", node: 12, country: "대만", price: 145, rvc: 62.0, eccn: "None" },
-            { hs: "8542.39.0000", name: "전력반도체 SiC 모듈", node: 45, country: "베트남", price: 45, rvc: 58.0, eccn: "None" }
+            {{ hs: "8542.31.1000", name: "AI 가속기 HBM3e", node: 4, country: "미국", price: 2850, rvc: 68.5, eccn: "3A090" }},
+            {{ hs: "8542.32.0000", name: "서버용 DDR5 DRAM", node: 12, country: "대만", price: 145, rvc: 62.0, eccn: "None" }},
+            {{ hs: "8542.39.0000", name: "전력반도체 SiC 모듈", node: 45, country: "베트남", price: 45, rvc: 58.0, eccn: "None" }}
         ];
 
-        function renderTableRows(rows) {
+        function renderTableRows(rows) {{
             const tbody = document.getElementById('diagnosis-tbody');
             if(!tbody) return;
             tbody.innerHTML = '';
-            rows.forEach(r => {
+            rows.forEach(r => {{
                 let score = 100;
                 let reasons = [];
-                if(r.node <= 7 || r.eccn === "3A090") {
+                if(r.node <= 7 || r.eccn === "3A090") {{
                     score -= 15;
                     reasons.push("미 상무부 3A090 규제군 및 미세공정(≤7nm) 해당 (-15점)");
-                }
-                if(r.rvc < 55.0) {
+                }}
+                if(r.rvc < 55.0) {{
                     score -= 20;
                     reasons.push("FTA 부가가치비율(RVC) 55% 미달 (-20점)");
-                }
+                }}
 
                 const badgeColor = score >= 80 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800";
                 const reasonText = reasons.length ? reasons.join(" / ") : "만점 통과 (특이 규제 없음)";
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="p-3 font-mono font-medium">${r.hs}</td>
-                    <td class="p-3 font-bold text-slate-900">${r.name}</td>
-                    <td class="p-3">${r.node} nm</td>
-                    <td class="p-3">${r.country}</td>
-                    <td class="p-3">$${Number(r.price).toLocaleString()}</td>
-                    <td class="p-3">${r.rvc}%</td>
-                    <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${badgeColor}">${score}점</span></td>
-                    <td class="p-3 text-slate-500">${reasonText}</td>
+                    <td class="p-3 font-mono font-medium">${{r.hs}}</td>
+                    <td class="p-3 font-bold text-slate-900">${{r.name}}</td>
+                    <td class="p-3">${{r.node}} nm</td>
+                    <td class="p-3">${{r.country}}</td>
+                    <td class="p-3">$${{Number(r.price).toLocaleString()}}</td>
+                    <td class="p-3">${{r.rvc}}%</td>
+                    <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${{badgeColor}}">${{score}}점</span></td>
+                    <td class="p-3 text-slate-500">${{reasonText}}</td>
                 `;
                 tbody.appendChild(tr);
-            });
-        }
+            }});
+        }}
         renderTableRows(initialDummyRows);
 
-        function handleFileUpload(e) {
+        function handleFileUpload(e) {{
             const file = e.target.files[0];
             if(!file) return;
             const reader = new FileReader();
-            reader.onload = function(evt) {
+            reader.onload = function(evt) {{
                 const lines = evt.target.result.split('\\n').filter(l => l.trim().length > 0);
                 const parsed = [];
-                for(let i = 1; i < lines.length; i++) {
+                for(let i = 1; i < lines.length; i++) {{
                     const cols = lines[i].split(',');
-                    if(cols.length >= 6) {
-                        parsed.push({
+                    if(cols.length >= 6) {{
+                        parsed.push({{
                             hs: cols[0].trim(),
                             name: cols[1].trim(),
                             node: parseInt(cols[2]) || 28,
@@ -981,16 +1167,16 @@ raw_html = """
                             price: parseFloat(cols[4]) || 100,
                             rvc: parseFloat(cols[5]) || 60,
                             eccn: cols[6] ? cols[6].trim() : "None"
-                        });
-                    }
-                }
-                if(parsed.length) {
+                        }});
+                    }}
+                }}
+                if(parsed.length) {{
                     renderTableRows(parsed);
                     alert("성공적으로 " + parsed.length + "건의 데이터를 분석했습니다.");
-                }
-            };
+                }}
+            }};
             reader.readAsText(file);
-        }
+        }}
     </script>
 </body>
 </html>
@@ -998,4 +1184,3 @@ raw_html = """
 
 # Streamlit 풀스크린 임베딩
 components.html(raw_html, height=1000, scrolling=True)
-# 데모
