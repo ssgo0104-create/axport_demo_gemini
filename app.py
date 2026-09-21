@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Streamlit 기본 여백 제거
+# 2. 여백 완전 제거
 st.markdown("""
 <style>
     #MainMenu {visibility: hidden;}
@@ -28,7 +28,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. 로컬 및 Streamlit Cloud 겸용 상대 경로 Base64 변환
+# 3. Base64 이미지 변환 헬퍼 (로컬 및 Streamlit Cloud 겸용)
 def get_image_base64(filename):
     candidates = [
         filename,
@@ -50,7 +50,7 @@ def get_image_base64(filename):
 logo_b64 = get_image_base64("Axport_logo_png.png")
 chatbot_b64 = get_image_base64("Axport_AI.png")
 
-# 4. 통합 웹 애플리케이션 소스
+# 4. 전체 프론트엔드 웹 앱
 raw_html = f"""
 <!DOCTYPE html>
 <html lang="ko" class="dark scroll-smooth">
@@ -89,13 +89,11 @@ raw_html = f"""
         
         .logo-font {{ font-family: 'Montserrat', sans-serif; font-weight: 900; }}
 
-        /* 다크모드에서 어두운 로고를 선명한 화이트/블루로 반전시키는 필터 */
+        /* 다크모드 로고 발광 필터 */
         .dark .logo-adaptive {{
-            filter: brightness(0) invert(1) drop-shadow(0 0 4px rgba(56, 189, 248, 0.6));
+            filter: brightness(0) invert(1) drop-shadow(0 0 6px rgba(56, 189, 248, 0.7));
         }}
-        .logo-adaptive {{
-            transition: filter 0.3s ease;
-        }}
+        .logo-adaptive {{ transition: filter 0.3s ease; }}
 
         .mac-glass {{
             background: rgba(255, 255, 255, 0.9);
@@ -146,7 +144,7 @@ raw_html = f"""
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/85 dark:bg-[#030712]/85 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800/80 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-6">
-                <!-- Axport 로고 (다크모드 시 백색/네온 자동 전환) -->
+                <!-- Axport 로고 -->
                 <div class="cursor-pointer flex items-center select-none" onclick="switchView('landing')">
                     <img id="header-logo-img" src="{logo_b64}" alt="AXPORT" class="h-10 object-contain logo-adaptive" onerror="this.style.display='none'; document.getElementById('header-logo-fallback').style.display='block';" />
                     <div id="header-logo-fallback" class="hidden">
@@ -154,7 +152,7 @@ raw_html = f"""
                     </div>
                 </div>
 
-                <!-- 네비게이션 (요청하신 영문 메뉴) -->
+                <!-- 네비게이션 메뉴 (영문) -->
                 <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                     <button onclick="switchView('landing')" id="nav-landing" class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all bg-blue-600 text-white shadow-sm">Home</button>
                     <button onclick="switchView('dashboard')" id="nav-dashboard" class="px-4 py-1.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white transition-all">Main Dashboard</button>
@@ -164,16 +162,15 @@ raw_html = f"""
                 </nav>
             </div>
 
-            <!-- 우측 컨트롤러: Contact Us, 다국어 4개국어, 테마 토글 -->
+            <!-- 우측 액션 버튼들 -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Contact Us 버튼 -->
                 <button onclick="openContactModal()" class="flex items-center gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-all">
                     <i data-lucide="mail" class="w-3.5 h-3.5"></i> Contact Us
                 </button>
 
-                <!-- 다국어 4개국어 드롭다운 (KO, EN, JA, ZH) -->
+                <!-- 4개 국어 다국어 선택 -->
                 <div class="relative">
-                    <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-lg px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                    <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-lg px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 focus:outline-none cursor-pointer">
                         <option value="ko">🇰🇷 한국어</option>
                         <option value="en">🇺🇸 English</option>
                         <option value="ja">🇯🇵 日本語</option>
@@ -181,12 +178,11 @@ raw_html = f"""
                     </select>
                 </div>
 
-                <!-- 라이트 / 다크 모드 토글 스위치 -->
-                <button onclick="toggleDarkMode()" id="theme-toggle-btn" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-amber-400 border border-slate-300 dark:border-slate-700 hover:scale-105 transition-all" title="테마 변경">
+                <!-- 다크모드 토글 스위치 -->
+                <button onclick="toggleDarkMode()" id="theme-toggle-btn" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-amber-400 border border-slate-300 dark:border-slate-700 hover:scale-105 transition-all">
                     <i id="theme-icon" data-lucide="sun" class="w-4 h-4"></i>
                 </button>
 
-                <!-- 챗봇 팝업 버튼 -->
                 <button onclick="toggleChatbot()" class="hidden sm:flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm transition-all">
                     <i data-lucide="bot" class="w-3.5 h-3.5"></i> Axport AI
                 </button>
@@ -194,23 +190,22 @@ raw_html = f"""
         </div>
     </header>
 
-    <!-- ================= VIEW 1: Home (스크롤 연동 3D 세계지도 지구본) ================= -->
+    <!-- ================= VIEW 1: Home (Sketchfab 스타일 홀로그램 3D 지구본) ================= -->
     <section id="view-landing" class="relative block w-full bg-white dark:bg-[#030712] transition-colors">
-        
-        <!-- 고정 3D 세계지도 캔버스 (두 번째 사진의 정밀 해안선 & 네트워크 지구본) -->
+        <!-- 3D 홀로그램 지구본 캔버스 -->
         <div id="canvas-sticky-wrap" class="fixed inset-0 z-0 pointer-events-none w-full h-full">
             <div id="globe-container" class="w-full h-full"></div>
         </div>
 
         <!-- 1단계: 진입 히어로 -->
         <div class="relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-4 pt-16">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-cyan-400 text-xs font-semibold backdrop-blur-md mb-6 animate-pulse">
-                <span class="w-2 h-2 rounded-full bg-blue-600 dark:bg-cyan-400"></span>
-                <span id="txt-badge">Cybernetic Trade Compliance Intelligence</span>
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-300 text-xs font-semibold backdrop-blur-md mb-6 animate-pulse">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                <span id="txt-badge">Holographic Trade Compliance Intelligence</span>
             </div>
             <h1 class="text-4xl sm:text-7xl font-black tracking-tight text-slate-900 dark:text-white max-w-4xl leading-tight">
                 <span id="txt-title1">반도체 수출 적합성의</span> <br>
-                <span id="txt-title2" class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600 dark:from-cyan-400 dark:via-blue-500 dark:to-indigo-400">새로운 기준, Axport</span>
+                <span id="txt-title2" class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600 dark:from-cyan-300 dark:via-blue-400 dark:to-indigo-300">새로운 기준, Axport</span>
             </h1>
             <p id="txt-subtitle" class="mt-6 text-slate-600 dark:text-slate-400 text-sm sm:text-lg max-w-xl leading-relaxed">
                 실제 글로벌 무역망과 연결된 반도체 수출 통제 AI 진단 플랫폼
@@ -222,10 +217,10 @@ raw_html = f"""
             </div>
         </div>
 
-        <!-- 2단계: 스크롤 전환 회사 소개 -->
+        <!-- 2단계: 회사 소개 -->
         <div class="relative z-10 min-h-screen flex items-center px-6 sm:px-16 py-24">
-            <div class="max-w-xl bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-2xl space-y-5">
-                <div class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-cyan-400">About Axport</div>
+            <div class="max-w-xl bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800/80 shadow-2xl space-y-5">
+                <div class="text-xs font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">About Axport</div>
                 <h2 id="txt-about-h2" class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
                     복잡한 통제 규제를 <br>단 하나의 흐름으로
                 </h2>
@@ -234,40 +229,40 @@ raw_html = f"""
                 </p>
                 <div class="pt-2 flex items-center gap-6">
                     <div>
-                        <div class="text-2xl font-black text-blue-600 dark:text-cyan-400">99.8%</div>
+                        <div class="text-2xl font-black text-cyan-600 dark:text-cyan-400">99.8%</div>
                         <div class="text-xs text-slate-500 dark:text-slate-400">규제 판정 정확도</div>
                     </div>
                     <div class="w-px h-8 bg-slate-300 dark:bg-slate-800"></div>
                     <div>
-                        <div class="text-2xl font-black text-indigo-600 dark:text-blue-400">Zero-ETL</div>
+                        <div class="text-2xl font-black text-blue-600 dark:text-blue-400">Zero-ETL</div>
                         <div class="text-xs text-slate-500 dark:text-slate-400">무가공 자동 정제</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3단계: 핵심 강점 카드 섹션 -->
+        <!-- 3단계: 핵심 강점 카드 -->
         <div class="relative z-10 max-w-7xl mx-auto px-6 py-24">
             <div class="text-center max-w-2xl mx-auto mb-16">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2">Core Advantages</h3>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-2">Core Advantages</h3>
                 <h4 class="text-3xl font-extrabold text-slate-900 dark:text-white">Axport 3단계 컴플라이언스 엔진</h4>
             </div>
             <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-blue-500 transition-all group">
-                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-cyan-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <i data-lucide="database" class="w-6 h-6"></i>
                     </div>
                     <h5 class="text-lg font-bold text-slate-900 dark:text-white mb-2">1. 원클릭 Zero-ETL</h5>
                     <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">기업마다 제각각인 ERP 인보이스 CSV를 올리기만 하면 통화 환산과 결측치를 알아서 정규화합니다.</p>
                 </div>
-                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-blue-500 transition-all group">
+                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500 transition-all group">
                     <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <i data-lucide="shield-check" class="w-6 h-6"></i>
                     </div>
                     <h5 class="text-lg font-bold text-slate-900 dark:text-white mb-2">2. 투명한 감점 원인 역추적</h5>
                     <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">ECCN 3A090 통제선 및 RVC 부가가치 미달 조항을 명확히 제시하며 담당자가 검수할 수 있습니다.</p>
                 </div>
-                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-blue-500 transition-all group">
+                <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500 transition-all group">
                     <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <i data-lucide="activity" class="w-6 h-6"></i>
                     </div>
@@ -278,9 +273,10 @@ raw_html = f"""
         </div>
     </section>
 
-    <!-- ================= VIEW 2: Main Dashboard ================= -->
+    <!-- ================= VIEW 2: Main Dashboard (완전 복구됨) ================= -->
     <section id="view-dashboard" class="hidden min-h-screen pt-20 px-4 sm:px-6 lg:px-8 pb-16 space-y-6 bg-slate-50 dark:bg-[#070D19] transition-colors">
         <div class="max-w-7xl mx-auto space-y-6">
+            <!-- 탭 바 -->
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2 sm:gap-4 overflow-x-auto">
                     <button onclick="switchDashTab('tab-summary')" id="btntab-summary" class="dash-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600">📊 종합 요약</button>
@@ -296,6 +292,7 @@ raw_html = f"""
 
             <!-- 탭 1: 종합 요약 -->
             <div id="content-tab-summary" class="space-y-6">
+                <!-- 4대 KPI 카드 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="kpi-gradient-blue p-5 rounded-2xl text-white shadow-sm">
                         <div class="text-xs font-semibold uppercase tracking-wider opacity-85">총 수출액 (SEMICON)</div>
@@ -319,6 +316,7 @@ raw_html = f"""
                     </div>
                 </div>
 
+                <!-- 차트 영역 -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
                         <div class="flex items-center justify-between mb-4">
@@ -338,9 +336,17 @@ raw_html = f"""
                         <div class="h-64 relative flex items-center justify-center"><canvas id="chart-pie"></canvas></div>
                     </div>
                 </div>
+
+                <!-- 분석 시사점 문장 (평가표 요건) -->
+                <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl p-4 text-blue-900 dark:text-blue-200 text-xs leading-relaxed flex items-start gap-3">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
+                    <div>
+                        <b>[시장 시사점 도출]</b> AI 가속기 및 HBM3e 중심의 고부가 패키징 수출 수요 확대로 대미 수출 점유율이 28%로 견고하게 유지되고 있습니다. 다만, 미 상무부 BIS의 첨단 컴퓨팅 칩(ECCN 3A090) 수출통제 개정으로 인해 동남아 우회 통관 시 최종 사용자(End-User) 검증 서약 절차를 보강할 필요가 있습니다.
+                    </div>
+                </div>
             </div>
 
-            <!-- 탭 2: 데이터 업로드 & 진단 엔진 -->
+            <!-- 탭 2: 데이터 업로드 & 적합성 판정 (CSV 파싱 복구됨) -->
             <div id="content-tab-upload" class="hidden space-y-6">
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -353,9 +359,9 @@ raw_html = f"""
                         </button>
                     </div>
 
-                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 rounded-2xl p-8 text-center transition-all cursor-pointer bg-slate-50/50 dark:bg-slate-800/30" onclick="document.getElementById('file-input').click()">
+                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-cyan-500 rounded-2xl p-8 text-center transition-all cursor-pointer bg-slate-50/50 dark:bg-slate-800/30" onclick="document.getElementById('file-input').click()">
                         <input type="file" id="file-input" class="hidden" accept=".csv" onchange="handleFileUpload(event)">
-                        <i data-lucide="upload-cloud" class="w-10 h-10 text-blue-600 mx-auto mb-2"></i>
+                        <i data-lucide="upload-cloud" class="w-10 h-10 text-cyan-500 mx-auto mb-2"></i>
                         <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">여기를 클릭하거나 CSV 파일을 드래그하여 업로드하세요</p>
                         <p class="text-xs text-slate-400 mt-1">지원 형식: .csv (HS_CODE, PRODUCT_NAME, PROCESS_NODE_NM, TARGET_COUNTRY 필수 포함)</p>
                     </div>
@@ -365,14 +371,13 @@ raw_html = f"""
                     <div class="flex items-center justify-between">
                         <div>
                             <h4 class="font-bold text-slate-900 dark:text-white text-base">품목별 수출 적합성 진단 결과</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">평가 기준표에 따른 자동 감점 및 합격 여부 판정 내역</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Zero-ETL 전처리 적용 완료 (USD 단위 정규화 및 결측치 보간)</p>
                         </div>
                         <div class="text-right">
                             <span class="text-xs text-slate-400">평균 적합도</span>
                             <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="total-score-badge">88.5점 (적합)</div>
                         </div>
                     </div>
-
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
@@ -393,7 +398,7 @@ raw_html = f"""
                 </div>
             </div>
 
-            <!-- 탭 3: 평가 기준표 -->
+            <!-- 탭 3: 평가 기준표 (완전 복구됨) -->
             <div id="content-tab-criteria" class="hidden space-y-6">
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
                     <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -404,7 +409,7 @@ raw_html = f"""
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div class="p-4 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/30">
                             <span class="text-xs font-bold text-blue-800 dark:text-blue-300">1. 기술 규제 적합도 (35점)</span>
-                            <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-2">• ECCN 3A090 통제선 미달 여부<br>• 웨이퍼 미세공정 (≤ 7nm 감점)</p>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-2">• ECCN 3A090 통제선 미달 여부<br>• 웨이퍼 미세공정 (≤ 7nm 감점)<br>• TPP 연산능력 밀도 분석</p>
                         </div>
                         <div class="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/30">
                             <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300">2. 원산지 충족도 (30점)</span>
@@ -419,10 +424,35 @@ raw_html = f"""
                             <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-2">• 글로벌 DRAM/NAND 현물가 연동<br>• 외환 변동성 민감도 분석</p>
                         </div>
                     </div>
+
+                    <table class="w-full text-xs text-left border-collapse border border-slate-200 dark:border-slate-700">
+                        <thead class="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+                            <tr>
+                                <th class="p-2.5 border border-slate-200 dark:border-slate-700">평가 항목</th>
+                                <th class="p-2.5 border border-slate-200 dark:border-slate-700">정상 기준 (합격)</th>
+                                <th class="p-2.5 border border-slate-200 dark:border-slate-700">감점 및 보완 조건</th>
+                                <th class="p-2.5 border border-slate-200 dark:border-slate-700">적용 배점</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 text-slate-600 dark:text-slate-300">
+                            <tr>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700 font-semibold">전략물자 통제 (ECCN)</td>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700 text-emerald-600">EAR99 또는 범용 비통제 품목</td>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700 text-red-500">3A090 첨단 칩 또는 7nm 이하 미세공정 (-15점)</td>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700">35점 만점</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700 font-semibold">원산지 부가가치 (RVC)</td>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700 text-emerald-600">RVC 55.0% 이상 확보</td>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700 text-red-500">RVC 55% 미만 시 FTA 혜택 제외 (-20점)</td>
+                                <td class="p-2.5 border border-slate-200 dark:border-slate-700">30점 만점</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- 탭 4: 규제/통관 리스크 -->
+            <!-- 탭 4: 리스크 모니터링 -->
             <div id="content-tab-risks" class="hidden space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -434,6 +464,9 @@ raw_html = f"""
                             <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 rounded-r-lg text-amber-900 dark:text-amber-200">
                                 <b>ECCN 3A090.b (성능 밀도 칩)</b>: 연산밀도 기준 충족 칩 사전 통보(NAC) 대상
                             </div>
+                            <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 rounded-r-lg text-emerald-900 dark:text-emerald-200">
+                                <b>EAR99 (범용 반도체)</b>: 성숙 공정(28nm 이상) 부품으로 통관 리스크 없음
+                            </div>
                         </div>
                     </div>
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -442,6 +475,10 @@ raw_html = f"""
                             <div>
                                 <div class="flex justify-between font-semibold mb-1"><span>미국 (CBP)</span><span>2.8% (양호)</span></div>
                                 <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full w-[28%]"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between font-semibold mb-1"><span>대만 (신주 FAB 경유)</span><span>1.4% (매우 양호)</span></div>
+                                <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full w-[14%]"></div></div>
                             </div>
                             <div>
                                 <div class="flex justify-between font-semibold mb-1"><span>중국 (세관 총서)</span><span class="text-red-500 font-bold">12.4% (정밀 검사 주의)</span></div>
@@ -475,14 +512,14 @@ raw_html = f"""
         </div>
     </section>
 
-    <!-- ================= VIEW 3: Custom View (macOS 스타일) ================= -->
+    <!-- ================= VIEW 3: Custom View (4대 윈도우 완전 복구) ================= -->
     <section id="view-custom-mac" class="hidden relative w-full h-[92vh] pt-16 mac-desktop-bg overflow-hidden">
         <div class="absolute top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white/20 dark:bg-black/40 backdrop-blur-xl border border-white/30 px-4 py-2 rounded-2xl shadow-xl">
             <button onclick="toggleMacWindow('mac-win1')" id="btn-win1" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 shadow-md flex items-center gap-1.5">
                 <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> KPI 창
             </button>
             <button onclick="toggleMacWindow('mac-win2')" id="btn-win2" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 shadow-md flex items-center gap-1.5">
-                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> 진단 엔진 창
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> 적합도 진단 창
             </button>
             <button onclick="toggleMacWindow('mac-win3')" id="btn-win3" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 shadow-md flex items-center gap-1.5">
                 <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> 리스크 창
@@ -495,13 +532,8 @@ raw_html = f"""
         <!-- 윈도우 1: KPI 요약 -->
         <div id="mac-win1" class="mac-window w-80 mac-glass rounded-2xl shadow-2xl" style="top: 120px; left: 40px; z-index: 20;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-3 h-3 rounded-full bg-red-400 cursor-pointer" onclick="toggleMacWindow('mac-win1')"></span>
-                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                </div>
                 <span class="text-xs font-semibold">SEMICON KPI 요약</span>
-                <div class="w-6"></div>
+                <span class="text-[10px] text-slate-400">드래그/크기조절 가능</span>
             </div>
             <div class="p-4 space-y-3">
                 <div class="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900">
@@ -515,13 +547,8 @@ raw_html = f"""
         <!-- 윈도우 2: 진단 엔진 -->
         <div id="mac-win2" class="mac-window w-96 mac-glass rounded-2xl shadow-2xl" style="top: 120px; left: 380px; z-index: 21;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-3 h-3 rounded-full bg-red-400 cursor-pointer" onclick="toggleMacWindow('mac-win2')"></span>
-                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                </div>
                 <span class="text-xs font-semibold">수출 적합성 진단 엔진</span>
-                <div class="w-6"></div>
+                <span class="text-[10px] text-slate-400">드래그/크기조절 가능</span>
             </div>
             <div class="p-4 space-y-3 text-xs">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
@@ -535,16 +562,10 @@ raw_html = f"""
             </div>
         </div>
 
-        <!-- 윈도우 3: 리스크 창 -->
+        <!-- 윈도우 3: 리스크 모니터 -->
         <div id="mac-win3" class="mac-window w-84 mac-glass rounded-2xl shadow-2xl" style="top: 320px; left: 100px; z-index: 22;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-3 h-3 rounded-full bg-red-400 cursor-pointer" onclick="toggleMacWindow('mac-win3')"></span>
-                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                </div>
                 <span class="text-xs font-semibold">통관 리스크 모니터</span>
-                <div class="w-6"></div>
             </div>
             <div class="p-4 text-xs">
                 <div class="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200">
@@ -557,13 +578,7 @@ raw_html = f"""
         <!-- 윈도우 4: 시황 창 -->
         <div id="mac-win4" class="mac-window w-80 mac-glass rounded-2xl shadow-2xl" style="top: 300px; left: 520px; z-index: 23;">
             <div class="window-drag-header bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/50 px-3.5 py-2.5 flex items-center justify-between">
-                <div class="flex items-center gap-1.5">
-                    <span class="w-3 h-3 rounded-full bg-red-400 cursor-pointer" onclick="toggleMacWindow('mac-win4')"></span>
-                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                </div>
                 <span class="text-xs font-semibold">FX & Spot Feed</span>
-                <div class="w-6"></div>
             </div>
             <div class="p-4 text-xs space-y-2">
                 <div class="flex justify-between"><span>USD / KRW</span><b>1,350.2 원 (+3.2)</b></div>
@@ -577,76 +592,61 @@ raw_html = f"""
         <div class="bg-white dark:bg-slate-900 max-w-md w-full rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
                 <h3 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                    <i data-lucide="mail" class="w-4 h-4 text-blue-600"></i> Contact Axport
+                    <i data-lucide="mail" class="w-4 h-4 text-cyan-500"></i> Contact Axport
                 </h3>
-                <button onclick="closeContactModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <button onclick="closeContactModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 font-medium">
+                <div class="p-3 bg-cyan-50 dark:bg-cyan-950/40 rounded-xl border border-cyan-200 dark:border-cyan-800 text-cyan-900 dark:text-cyan-200 font-medium">
                     📌 <b>안내</b>: 공식 고객센터 및 무역 실무 전담팀 연락처는 <b>정식 릴리즈 버전에 맞춰 업데이트 예정</b>입니다.
                 </div>
                 <div>
                     <label class="block font-semibold mb-1">문의 및 제휴 이메일 남기기</label>
-                    <input type="email" placeholder="name@company.com" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-600 focus:outline-none" />
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">문의 내용</label>
-                    <textarea rows="3" placeholder="반도체 수출 통제 컨설팅 또는 플랫폼 제휴 문의..." class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-600 focus:outline-none"></textarea>
+                    <input type="email" placeholder="name@company.com" class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-none" />
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeContactModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">닫기</button>
-                <button onclick="alert('문의가 접수되었습니다. 업데이트 후 순차 회신 드리겠습니다.'); closeContactModal();" class="bg-blue-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md">접수하기</button>
+                <button onclick="alert('문의가 접수되었습니다. 업데이트 후 회신 드리겠습니다.'); closeContactModal();" class="bg-cyan-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md">접수하기</button>
             </div>
         </div>
     </div>
 
     <!-- ================= 플로팅 AI 챗봇 ================= -->
     <div id="chatbot-trigger" onclick="toggleChatbot()" class="fixed bottom-6 right-6 z-50 cursor-pointer group">
-        <div class="relative w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform overflow-hidden border-2 border-white">
+        <div class="relative w-14 h-14 rounded-full bg-cyan-600 flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-transform overflow-hidden border-2 border-white">
             <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('chat-icon-fallback').style.display='block';" />
             <div id="chat-icon-fallback" class="hidden"><i data-lucide="message-square" class="w-6 h-6"></i></div>
             <span class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white"></span>
         </div>
     </div>
 
-    <div id="chatbot-window" class="hidden fixed bottom-24 right-6 z-50 w-96 max-w-[90vw] h-[520px] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 chatbot-container flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
-        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 text-white flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-white/20 p-0.5 overflow-hidden border border-white/40">
-                    <img src="{chatbot_b64}" alt="AI" class="w-full h-full object-cover rounded-full" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Axport';" />
-                </div>
-                <div>
-                    <h4 class="font-bold text-sm leading-none flex items-center gap-1.5 text-white">Axport AI 어시스턴트</h4>
-                    <p class="text-[11px] text-blue-200 mt-1">수출통제 & 무역 규제 상담</p>
-                </div>
-            </div>
+    <div id="chatbot-window" class="hidden fixed bottom-24 right-6 z-50 w-96 max-w-[90vw] h-[520px] bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 chatbot-container flex flex-col overflow-hidden">
+        <div class="bg-gradient-to-r from-cyan-600 to-blue-800 p-4 text-white flex items-center justify-between">
+            <h4 class="font-bold text-sm text-white">Axport AI 어시스턴트</h4>
             <button onclick="toggleChatbot()" class="text-white/80 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-
-        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs text-slate-800 dark:text-slate-100">
-            <div class="flex items-start gap-2">
-                <div class="chat-bubble-ai p-3 max-w-[80%] leading-relaxed">
-                    안녕하세요! <b>Axport 반도체 무역 규제 전담 AI</b>입니다. 무엇이든 질문해주세요.
-                </div>
-            </div>
+        <div class="p-2.5 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex gap-1.5 overflow-x-auto text-[11px]">
+            <button onclick="askPreset('ECCN 3A090 규제 기준이 뭐야?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 whitespace-nowrap">3A090 통제선</button>
+            <button onclick="askPreset('RVC 부가가치기준 계산법 알려줘')" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 whitespace-nowrap">RVC 산출 공식</button>
+            <button onclick="askPreset('HBM3e 대미 수출 시 주의점은?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 whitespace-nowrap">HBM 대미 수출</button>
         </div>
-
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs text-slate-800 dark:text-slate-100">
+            <div class="chat-bubble-ai p-3 max-w-[80%]">안녕하세요! 반도체 무역 규제 상담 AI입니다. 무엇이든 질문하세요.</div>
+        </div>
         <div class="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
             <form id="chat-form" onsubmit="handleChatSubmit(event)" class="flex items-center gap-2">
-                <input type="text" id="chat-input" placeholder="질문을 입력하세요..." class="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-600 focus:outline-none" />
-                <button type="submit" class="bg-blue-600 text-white p-2.5 rounded-xl"><i data-lucide="send" class="w-4 h-4"></i></button>
+                <input type="text" id="chat-input" placeholder="질문 입력..." class="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-none" />
+                <button type="submit" class="bg-cyan-600 text-white p-2.5 rounded-xl"><i data-lucide="send" class="w-4 h-4"></i></button>
             </form>
         </div>
     </div>
 
-    <!-- JS 스크립트: 두 번째 사진의 실제 세계지도 3D 지구본 + 다국어 + 테마 엔진 -->
+    <!-- JS 스크립트 -->
     <script>
         lucide.createIcons();
 
-        // 1. 테마 토글 (Dark / Light)
+        // 1. 테마 토글
         function toggleDarkMode() {{
             const html = document.documentElement;
             const isDark = html.classList.contains('dark');
@@ -661,47 +661,14 @@ raw_html = f"""
                 localStorage.setItem('axport-theme', 'dark');
             }}
             lucide.createIcons();
-            if(window.updateGlobeColors) window.updateGlobeColors(!isDark);
         }}
 
-        // 2. 다국어 사전 (KO, EN, JA, ZH)
+        // 2. 다국어
         const i18n = {{
-            ko: {{
-                badge: "Cybernetic Trade Compliance Intelligence",
-                title1: "반도체 수출 적합성의",
-                title2: "새로운 기준, Axport",
-                subtitle: "실제 글로벌 무역망과 연결된 반도체 수출 통제 AI 진단 플랫폼",
-                btnDash: "대시보드 시작하기",
-                aboutH2: "복잡한 통제 규제를 <br>단 하나의 흐름으로",
-                aboutP: "Axport는 기업의 원시 데이터(Raw CSV/ERP)를 실시간 스트리밍하여, 미 상무부 BIS 수출통제(ECCN 3A090)와 FTA 원산지 부가가치기준(RVC)을 완전 자동으로 판정합니다."
-            }},
-            en: {{
-                badge: "Cybernetic Trade Compliance Intelligence",
-                title1: "A New Standard for",
-                title2: "Semiconductor Export, Axport",
-                subtitle: "AI-Powered Semiconductor Export Compliance Platform Connected to Global Trade Networks",
-                btnDash: "Launch Dashboard",
-                aboutH2: "Complex Trade Regulations <br>In a Single Seamless Flow",
-                aboutP: "Axport automatically streams raw ERP data to audit US BIS ECCN 3A090 controls and FTA Regional Value Content (RVC) in real time."
-            }},
-            ja: {{
-                badge: "Cybernetic Trade Compliance Intelligence",
-                title1: "半導体輸出適合性の",
-                title2: "新たな基準、Axport",
-                subtitle: "グローバル貿易ネットワークと直結した半導体輸出管理AIプラットフォーム",
-                btnDash: "ダッシュボードを開始",
-                aboutH2: "複雑な規制対応を <br>ひとつのスムーズな流れに",
-                aboutP: "Axportは企業の生データを直接解析し、米BIS ECCN 3A090規制およびFTA原産地付加価値基準(RVC)を自動診断します。"
-            }},
-            zh: {{
-                badge: "Cybernetic Trade Compliance Intelligence",
-                title1: "半导体出口合规的",
-                title2: "全新标准，Axport",
-                subtitle: "深度连接全球贸易网络的半导体出口合规人工智能平台",
-                btnDash: "进入数据看板",
-                aboutH2: "化繁为简 <br>一体化智能合规流程",
-                aboutP: "Axport实时解析企业ERP原始数据，全面自动核查美国BIS ECCN 3A090出口管制及FTA区域价值成分(RVC)。"
-            }}
+            ko: {{ badge: "Holographic Trade Compliance Intelligence", title1: "반도체 수출 적합성의", title2: "새로운 기준, Axport", subtitle: "실제 글로벌 무역망과 연결된 반도체 수출 통제 AI 진단 플랫폼", btnDash: "대시보드 시작하기", aboutH2: "복잡한 통제 규제를 <br>단 하나의 흐름으로", aboutP: "Axport는 기업의 원시 데이터를 실시간 스트리밍하여, 미 상무부 BIS 수출통제와 FTA 부가가치기준을 완전 자동으로 판정합니다." }},
+            en: {{ badge: "Holographic Trade Compliance Intelligence", title1: "A New Standard for", title2: "Semiconductor Export, Axport", subtitle: "AI-Powered Semiconductor Export Compliance Platform Connected to Global Trade Networks", btnDash: "Launch Dashboard", aboutH2: "Complex Trade Regulations <br>In a Single Seamless Flow", aboutP: "Axport automatically streams raw ERP data to audit US BIS ECCN controls and FTA Regional Value Content in real time." }},
+            ja: {{ badge: "Holographic Trade Compliance Intelligence", title1: "半導体輸出適合性の", title2: "新たな基準、Axport", subtitle: "グローバル貿易ネットワークと直結した半導体輸出管理AIプラットフォーム", btnDash: "ダッシュボードを開始", aboutH2: "複雑な規制対応を <br>ひとつのスムーズな流れに", aboutP: "Axportは企業の生データを直接解析し、米BIS ECCN規制およびFTA原産地付加価値基準を自動診断します。" }},
+            zh: {{ badge: "Holographic Trade Compliance Intelligence", title1: "半导体出口合规的", title2: "全新标准，Axport", subtitle: "深度连接全球贸易网络的半导体出口合规人工智能平台", btnDash: "进入数据看板", aboutH2: "化繁为简 <br>一体化智能合规流程", aboutP: "Axport实时解析企业ERP原始数据，全面自动核查美国BIS ECCN出口管制及FTA区域价值成分。" }}
         }};
 
         function changeLanguage(lang) {{
@@ -715,11 +682,10 @@ raw_html = f"""
             document.getElementById('txt-about-p').innerText = t.aboutP;
         }}
 
-        // Contact Modal
         function openContactModal() {{ document.getElementById('modal-contact').classList.remove('hidden'); }}
         function closeContactModal() {{ document.getElementById('modal-contact').classList.add('hidden'); }}
 
-        // 3. 뷰 전환 제어
+        // 3. 뷰 전환
         function switchView(viewId) {{
             document.getElementById('view-landing').classList.add('hidden');
             document.getElementById('view-dashboard').classList.add('hidden');
@@ -755,43 +721,26 @@ raw_html = f"""
             const targetBtn = document.getElementById('btntab-' + tabId);
             if(targetContent) targetContent.classList.remove('hidden');
             if(targetBtn) targetBtn.className = "dash-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600";
-            if(tabId === 'tab-summary') {{
-                setTimeout(() => {{ initOrUpdateCharts(); }}, 50);
-            }}
+            if(tabId === 'tab-summary') {{ setTimeout(() => {{ initOrUpdateCharts(); }}, 50); }}
         }}
 
-        // 4. [핵심] 첨부된 두 번째 사진의 완벽한 세계지도 3D 지구본 (대륙 해안선 & 발광 노드 링크)
-        let globeScene, globeCamera, globeRenderer, globeGroup, globeMesh;
-        let baseRadius = 56;
+        // 4. Sketchfab 홀로그램 3D 엔진
+        let globeScene, globeCamera, globeRenderer, globeGroup, raysGroup, ring1, ring2;
+        let baseRadius = 54;
         let scrollYProgress = 0;
 
-        function latLonToVec3(lat, lon, radius) {{
-            const phi = (90 - lat) * (Math.PI / 180);
-            const theta = (lon + 180) * (Math.PI / 180);
-            return new THREE.Vector3(
-                -(radius * Math.sin(phi) * Math.cos(theta)),
-                radius * Math.cos(phi),
-                radius * Math.sin(phi) * Math.sin(theta)
-            );
-        }}
-
-        // 두 번째 사진의 정밀 대륙 텍스처 캔버스 렌더러
-        function createPhotorealisticWorldTexture() {{
+        function createHologramTexture() {{
             const canvas = document.createElement('canvas');
             canvas.width = 2048;
             canvas.height = 1024;
             const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 딥 블루 오션
-            ctx.fillStyle = '#050f24';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 대륙 색상 (두 번째 사진의 발광 네온 블루 & 사이버네틱 그라디언트)
-            ctx.fillStyle = '#1d4ed8';
+            ctx.fillStyle = '#00f0ff';
             ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2;
 
-            function drawLandPolygon(coords) {{
+            function drawLand(coords) {{
                 ctx.beginPath();
                 coords.forEach(([lon, lat], idx) => {{
                     const x = (lon + 180) * (canvas.width / 360);
@@ -804,35 +753,29 @@ raw_html = f"""
                 ctx.stroke();
             }}
 
-            // 1. 아시아 본토 및 한반도/일본
-            drawLandPolygon([[125, 42], [130, 42], [129, 35], [126, 34], [125, 38]]); // 한국
-            drawLandPolygon([[130, 32], [136, 35], [141, 44], [143, 42], [139, 36], [131, 31]]); // 일본
-            drawLandPolygon([ // 유라시아
+            drawLand([[125, 42], [130, 42], [129, 35], [126, 34], [125, 38]]); // 한국
+            drawLand([[130, 32], [136, 35], [141, 44], [143, 42], [139, 36], [131, 31]]); // 일본
+            drawLand([
                 [30, 70], [60, 72], [100, 75], [140, 72], [170, 65], [140, 50], [130, 43],
                 [122, 30], [108, 20], [100, 10], [90, 22], [80, 10], [70, 25], [60, 25],
                 [50, 30], [35, 32], [28, 41], [15, 55], [10, 60], [25, 68]
             ]);
-            // 2. 북아메리카
-            drawLandPolygon([
+            drawLand([
                 [-168, 65], [-140, 70], [-90, 72], [-60, 60], [-65, 45], [-75, 35], [-80, 25],
                 [-97, 26], [-105, 20], [-118, 32], [-124, 48], [-130, 55], [-160, 58]
             ]);
-            // 3. 남아메리카
-            drawLandPolygon([
+            drawLand([
                 [-75, 10], [-50, -5], [-35, -5], [-40, -22], [-55, -38], [-68, -55], [-75, -45],
                 [-72, -20], [-80, -2]
             ]);
-            // 4. 유럽
-            drawLandPolygon([
+            drawLand([
                 [-10, 36], [0, 43], [5, 50], [2, 58], [15, 58], [25, 60], [30, 50], [20, 40], [0, 38]
             ]);
-            // 5. 아프리카
-            drawLandPolygon([
+            drawLand([
                 [-15, 30], [10, 37], [30, 32], [42, 12], [50, 10], [40, -10], [30, -32],
                 [18, -34], [10, -5], [-10, 5], [-17, 15]
             ]);
-            // 6. 호주
-            drawLandPolygon([
+            drawLand([
                 [115, -22], [130, -12], [142, -10], [150, -24], [145, -38], [130, -32], [115, -34]
             ]);
 
@@ -855,65 +798,68 @@ raw_html = f"""
             globeGroup = new THREE.Group();
             globeScene.add(globeGroup);
 
-            // 두 번째 사진의 실제 세계지도 텍스처를 래핑한 구체
-            const worldTexture = createPhotorealisticWorldTexture();
-            const globeGeo = new THREE.SphereGeometry(baseRadius, 64, 64);
-            const globeMat = new THREE.MeshBasicMaterial({{
-                map: worldTexture,
+            // 코어 구체
+            const coreGeo = new THREE.SphereGeometry(baseRadius - 0.5, 48, 48);
+            const coreMat = new THREE.MeshBasicMaterial({{ color: 0x051329, transparent: true, opacity: 0.85 }});
+            globeGroup.add(new THREE.Mesh(coreGeo, coreMat));
+
+            // 대륙 홀로그램 에미션
+            const holoTex = createHologramTexture();
+            const holoGeo = new THREE.SphereGeometry(baseRadius, 64, 64);
+            const holoMat = new THREE.MeshBasicMaterial({{
+                map: holoTex,
                 transparent: true,
-                opacity: 0.95
+                opacity: 0.95,
+                blending: THREE.AdditiveBlending
             }});
-            globeMesh = new THREE.Mesh(globeGeo, globeMat);
-            globeGroup.add(globeMesh);
+            const holoMesh = new THREE.Mesh(holoGeo, holoMat);
+            globeGroup.add(holoMesh);
 
-            // 두 번째 사진의 발광 네트워크 링크 & 노드들
-            const networkNodes = [
-                {{ lat: 37.56, lon: 126.97 }},  // 한국
-                {{ lat: 37.77, lon: -122.41 }}, // 미국 서부
-                {{ lat: 40.71, lon: -74.00 }},  // 미국 동부
-                {{ lat: 24.78, lon: 120.99 }},  // 대만
-                {{ lat: 21.02, lon: 105.83 }},  // 베트남
-                {{ lat: 51.50, lon: -0.12 }},   // 영국
-                {{ lat: 48.85, lon: 2.35 }},    // 프랑스
-                {{ lat: -23.55, lon: -46.63 }}, // 브라질
-                {{ lat: -33.86, lon: 151.20 }}, // 호주
-                {{ lat: 28.61, lon: 77.20 }}    // 인도
-            ];
-
-            // 노드 핀 생성
-            networkNodes.forEach(pt => {{
-                const pos = latLonToVec3(pt.lat, pt.lon, baseRadius + 0.6);
-                const dot = new THREE.Mesh(
-                    new THREE.SphereGeometry(1.6, 12, 12),
-                    new THREE.MeshBasicMaterial({{ color: 0x67e8f9 }})
-                );
-                dot.position.copy(pos);
-                globeGroup.add(dot);
-
-                const ring = new THREE.Mesh(
-                    new THREE.RingGeometry(2.0, 3.2, 16),
-                    new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.7 }})
-                );
-                ring.position.copy(pos);
-                ring.lookAt(0, 0, 0);
-                globeGroup.add(ring);
+            // 격자망
+            const gridGeo = new THREE.SphereGeometry(baseRadius + 0.2, 32, 16);
+            const gridMat = new THREE.MeshBasicMaterial({{
+                color: 0x00f0ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.18
             }});
+            globeGroup.add(new THREE.Mesh(gridGeo, gridMat));
 
-            // 노드 간 거미줄 링크 (두 번째 사진의 상호 연결망)
-            for(let i = 0; i < networkNodes.length; i++) {{
-                for(let j = i + 1; j < networkNodes.length; j++) {{
-                    const p1 = latLonToVec3(networkNodes[i].lat, networkNodes[i].lon, baseRadius + 0.5);
-                    const p2 = latLonToVec3(networkNodes[j].lat, networkNodes[j].lon, baseRadius + 0.5);
-                    if(p1.distanceTo(p2) < 85) {{
-                        const mid = p1.clone().add(p2).multiplyScalar(0.5);
-                        mid.setLength(baseRadius + p1.distanceTo(p2) * 0.15);
-                        const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
-                        const geo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(24));
-                        const mat = new THREE.LineBasicMaterial({{ color: 0x00f0ff, transparent: true, opacity: 0.5 }});
-                        globeGroup.add(new THREE.Line(geo, mat));
-                    }}
-                }}
+            // 방사형 레이 빔 (스케치팹 특징)
+            raysGroup = new THREE.Group();
+            globeGroup.add(raysGroup);
+            for(let i = 0; i < 45; i++) {{
+                const rayLen = baseRadius * (1.15 + Math.random() * 0.35);
+                const phi = Math.random() * Math.PI;
+                const theta = Math.random() * Math.PI * 2;
+                const p1 = new THREE.Vector3(
+                    baseRadius * Math.sin(phi) * Math.cos(theta),
+                    baseRadius * Math.cos(phi),
+                    baseRadius * Math.sin(phi) * Math.sin(theta)
+                );
+                const p2 = p1.clone().multiplyScalar(rayLen / baseRadius);
+                const rayGeo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+                const rayMat = new THREE.LineBasicMaterial({{
+                    color: 0x38bdf8,
+                    transparent: true,
+                    opacity: 0.3 + Math.random() * 0.5,
+                    blending: THREE.AdditiveBlending
+                }});
+                raysGroup.add(new THREE.Line(rayGeo, rayMat));
             }}
+
+            // 오비탈 링
+            const ringGeo1 = new THREE.RingGeometry(baseRadius * 1.25, baseRadius * 1.27, 64);
+            const ringMat1 = new THREE.MeshBasicMaterial({{ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending }});
+            ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+            ring1.rotation.x = Math.PI / 2.5;
+            globeGroup.add(ring1);
+
+            const ringGeo2 = new THREE.RingGeometry(baseRadius * 1.4, baseRadius * 1.42, 64);
+            const ringMat2 = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending }});
+            ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+            ring2.rotation.x = -Math.PI / 3;
+            globeGroup.add(ring2);
 
             window.addEventListener('scroll', () => {{
                 const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -931,10 +877,15 @@ raw_html = f"""
                 requestAnimationFrame(animate);
                 const time = clock.getElapsedTime();
 
-                // 부드러운 자전
-                globeGroup.rotation.y = time * 0.15;
+                holoMesh.rotation.y = time * 0.16;
+                ring1.rotation.z = -time * 0.12;
+                ring2.rotation.z = time * 0.08;
 
-                // 스크롤 시 3D 카메라 공간 이동 (Orakl 스타일)
+                raysGroup.rotation.y = time * 0.1;
+                raysGroup.children.forEach((r, idx) => {{
+                    r.material.opacity = 0.25 + 0.35 * Math.sin(time * 3.0 + idx);
+                }});
+
                 const targetX = scrollYProgress * 36;
                 const targetY = -scrollYProgress * 6;
                 const targetScale = 1.0 + scrollYProgress * 0.35;
@@ -949,50 +900,45 @@ raw_html = f"""
         }}
         init3DGlobe();
 
-        // 5. 챗봇 제어
+        // 5. 챗봇
         function toggleChatbot() {{
             const win = document.getElementById('chatbot-window');
             win.classList.toggle('hidden');
-            if(!win.classList.contains('hidden')) {{
-                document.getElementById('chat-input').focus();
-            }}
+            if(!win.classList.contains('hidden')) {{ document.getElementById('chat-input').focus(); }}
         }}
-
         function appendMessage(text, isUser = false) {{
             const msgBox = document.getElementById('chat-messages');
             const wrap = document.createElement('div');
             wrap.className = isUser ? "flex justify-end" : "flex items-start gap-2";
-
-            if(isUser) {{
-                wrap.innerHTML = `<div class="chat-bubble-user p-3 max-w-[80%] leading-relaxed text-xs">${{text}}</div>`;
-            }} else {{
-                wrap.innerHTML = `<div class="chat-bubble-ai p-3 max-w-[80%] leading-relaxed text-xs">${{text}}</div>`;
-            }}
+            wrap.innerHTML = `<div class="${{isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}} p-3 max-w-[80%] text-xs">${{text}}</div>`;
             msgBox.appendChild(wrap);
             msgBox.scrollTop = msgBox.scrollHeight;
         }}
-
+        function askPreset(query) {{
+            document.getElementById('chat-input').value = query;
+            handleChatSubmit(new Event('submit'));
+        }}
         function handleChatSubmit(e) {{
             e.preventDefault();
             const inp = document.getElementById('chat-input');
             const q = inp.value.trim();
             if(!q) return;
-
             appendMessage(q, true);
             inp.value = '';
-
             setTimeout(() => {{
-                let ans = "해당 품목의 기술 사양(공정 노드, 연산밀도 등)을 입력하시면 정밀하게 수출 라이선스 요건을 시뮬레이션해 드립니다.";
+                let ans = "해당 품목의 기술 제원을 입력해주시면 정밀 라이선스 요건을 시뮬레이션해 드립니다.";
                 if(q.includes("3A090") || q.includes("통제선")) {{
-                    ans = "<b>미 상무부 ECCN 3A090 규제 핵심:</b><br>• TPP 4800 이상 칩은 사전 라이선스 의무화<br>• 7nm 이하 미세공정 해당 시 자동 -15점 감점";
+                    ans = "<b>미 상무부 ECCN 3A090 규제 안내:</b><br>• TPP 4800 이상 칩은 사전 라이선스 의무화<br>• 7nm 이하 미세공정 해당 시 자동 -15점 감점";
                 }} else if(q.includes("RVC") || q.includes("원산지")) {{
-                    ans = "<b>RVC(역내부가가치비율):</b><br>• 기준: 55.0% 이상 확보 필수<br>• 미달 시 -20점 감점 처리";
+                    ans = "<b>RVC(역내부가가치비율) 산출:</b><br>• 기준: 55.0% 이상 확보 필수<br>• 55% 미달 시 -20점 감점 처리";
+                }} else if(q.includes("HBM")) {{
+                    ans = "<b>HBM3e 대미 수출 가이드:</b><br>1. 최종 사용자 서약서(End-User Statement) 필수<br>2. 동남아 우회 패키징 시 재수출 규제(FDPR) 사전 점검";
                 }}
                 appendMessage(ans, false);
             }}, 500);
         }}
 
-        // 6. macOS 윈도우 드래그
+        // 6. macOS 윈도우 드래그 & 리사이즈
         let highestZ = 30;
         function setupWindows() {{
             document.querySelectorAll('.mac-window').forEach(win => {{
@@ -1021,14 +967,7 @@ raw_html = f"""
 
         function toggleMacWindow(winId) {{
             const win = document.getElementById(winId);
-            const btn = document.getElementById(winId.replace('mac-', 'btn-'));
-            if(win.style.display === 'none') {{
-                win.style.display = 'block';
-                if(btn) btn.classList.add('bg-blue-600');
-            }} else {{
-                win.style.display = 'none';
-                if(btn) btn.classList.remove('bg-blue-600');
-            }}
+            win.style.display = (win.style.display === 'none') ? 'block' : 'none';
         }}
 
         // 7. 차트 렌더링
@@ -1047,8 +986,8 @@ raw_html = f"""
                     datasets: [{{
                         label: '수출액 ($B)',
                         data: [9.2, 9.8, 10.4, 10.1, 11.2, 11.8, 12.3, 12.5, 12.8],
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                        borderColor: '#00f0ff',
+                        backgroundColor: 'rgba(0, 240, 255, 0.15)',
                         fill: true,
                         tension: 0.3
                     }}]
@@ -1062,14 +1001,14 @@ raw_html = f"""
                     labels: ['아시아', '북미', '유럽', '기타'],
                     datasets: [{{
                         data: [42, 28, 15, 15],
-                        backgroundColor: ['#2563eb', '#38bdf8', '#818cf8', '#cbd5e1']
+                        backgroundColor: ['#00f0ff', '#38bdf8', '#818cf8', '#cbd5e1']
                     }}]
                 }},
                 options: {{ responsive: true, maintainAspectRatio: false }}
             }});
         }}
 
-        // 8. 샘플 CSV 다운로드
+        // 8. 샘플 다운로드
         function downloadSampleCSV() {{
             const csvContent = "HS_CODE,PRODUCT_NAME,PROCESS_NODE_NM,TARGET_COUNTRY,UNIT_PRICE_USD,RVC_PERCENT,ECCN_FLAG\\n" +
                                "8542.31.1000,AI 가속기 HBM3e,4,미국,2850.0,68.5,3A090\\n" +
@@ -1083,7 +1022,7 @@ raw_html = f"""
             URL.revokeObjectURL(url);
         }}
 
-        // 9. 초기 데이터 렌더링 & 파일 업로드
+        // 9. 파일 파싱 & 테이블 렌더링
         const initialDummyRows = [
             {{ hs: "8542.31.1000", name: "AI 가속기 HBM3e", node: 4, country: "미국", price: 2850, rvc: 68.5, eccn: "3A090" }},
             {{ hs: "8542.32.0000", name: "서버용 DDR5 DRAM", node: 12, country: "대만", price: 145, rvc: 62.0, eccn: "None" }},
